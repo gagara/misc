@@ -1,0 +1,31 @@
+#!/sbin/openrc-run
+# Copyright 1999-2017 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+PIDFILE="${PIDFILE:-/var/run/uml295health.pid}"
+TIMEOUT=${TIMEOUT:-15}
+HEALTHCHECKER="/usr/local/bin/uml295health"
+
+depend() {
+	need net
+	after net
+}
+
+start() {
+	ebegin "Starting ${SVCNAME}"
+	start-stop-daemon --start --background --make-pidfile --pidfile ${PIDFILE} \
+		--env UPLINK_INTERFACE=${UPLINK_INTERFACE} \
+		--env UPLINK_SERVICE=${UPLINK_SERVICE} \
+		--env MODEM_CTRL_IP=${MODEM_CTRL_IP} \
+		--env PING_PROBE_HOST=${PING_PROBE_HOST} \
+		--env AVG_PING_THRESHOLD=${AVG_PING_THRESHOLD} \
+		--exec ${HEALTHCHECKER} 
+	eend $?
+}
+
+stop() {
+	ebegin "Stopping ${SVCNAME}"
+	start-stop-daemon --stop --retry 10 --pidfile ${PIDFILE}
+	eend $?
+}
+

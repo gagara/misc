@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# check health of 3g usb modem (Pantech UML295)
+# and if necessary reboot it
+
+LOOP_DELAY=60
+
+UPLINK_INTERFACE=${UPLINK_INTERFACE:-wlp3s0}
+UPLINK_SERVICE=${UPLINK_SERVICE:-net.wlp3s0}
+MODEM_CTRL_IP=${MODEM_CTRL_IP:-192.168.32.2}
+PING_PROBE_HOST=${PING_PROBE_HOST:-localhost}
+AVG_PING_THRESHOLD=${AVG_PING_THRESHOLD:-200}
+
+STATUS_CONNECTED="connected"
+EVDO_CONN_TYPE="EVDO"
+
+get_uplink_ip() {
+	ifconfig ${UPLINK_INTERFACE} 2>/dev/null | grep "inet " | awk '{print $2}'
+}
+
+get_modem_status() {
+	curl -XGET http://${MODEM_CTRL_IP}/condata 2>/dev/null | xmllint --format - 2>/dev/null | grep -A 4 "<condata>" | grep "<value>"	| sed -e 's|^.*>\(.*\)<.*$|\1|' | awk '{print $1}' 
+}
+
+get_connection_type() {
+	curl -XGET http://${MODEM_CTRL_IP}/condata 2>/dev/null | xmllint --format - 2>/dev/null | grep -A 3 "<network>" | grep "<type>" | sed -e 's|^.*>\(.*\)<.*$|\1|' | awk '{print $1}'
+}
+
+get_avg_ping() {
+	ping -c 5 ${PING_PROBE_HOST} 2>/dev/null | grep rtt | sed -e 's|^.*= [0-9.]\+\/\([0-9.]\+\)\/[0-9.]\+\/[0-9.]\+.*$|\1|'
+}
+
+restart_uplink() {
+	/etc/init.d/${UPLINK_SERVICE} restart
+}
+
+reconnect_modem() {
+	curl -XPOST http://${MODEM_CTRL_IP}/condata -d '<picaso version="1.0.0"><p-question><action>disconnect</action></p-question></picaso>' > /dev/null 2>&1
+	sleep 5
+	curl -XPOST http://${MODEM_CTRL_IP}/condata -d '<picaso version="1.0.0"><p-question><action>connect</action></p-question></picaso>' > /dev/null 2>&1
+}
+
+while true; do
+	sleep ${LOOP_DELAY}
+
+	uplink_ip=$(get_uplink_ip)
+	modem_status=$(get_modem_status)
+	conn_type=$(get_connection_type)
+	avg_ping=$(get_avg_ping)
+
+	status_str="Status: uplink IP: ${uplink_ip}; Modem status: ${modem_status}; Connection type: ${conn_type}; Avg ping: ${avg_ping}ms"
+
+	# check uplink interface
+	if [ -z "${uplink_ip}" ]; then
+		# uplink down. restart interface
+		logger "$0 - uplink down. Restarting ${UPLINK_SERVICE} service. ${status_str}"
+		restart_uplink
+		continue
+	fi
+
+	# check modem status
+	if [ "${modem_status}" != "$STATUS_CONNECTED" ]; then
+		# modem not connected. reconnect
+		logger "$0 - Not connected. Reconnecting. ${status_str}"
+		reconnect_modem
+		continue
+	fi
+
+	# check connection type
+	if [ "${conn_type}" != "$EVDO_CONN_TYPE" ]; then
+		# connection type is bad
+		logger "$0 - Bad conection: ${conn_type}. Reconnecting. ${status_str}"
+		reconnect_modem
+		continue
+	fi
+
+	# check connection quality (avg ping)
+	if [ $(echo "0${avg_ping} > ${AVG_PING_THRESHOLD}" | bc -l) = "1" ]; then
+		logger "$0 - Ping too bad: ${avg_ping}. Reconnecting. ${status_str}"
+		reconnect_modem
+		continue
+	fi
+done
+
