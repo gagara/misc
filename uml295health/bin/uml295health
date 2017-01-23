@@ -44,9 +44,10 @@ while true; do
 	sleep ${LOOP_DELAY}
 
 	uplink_ip=$(get_uplink_ip)
+	# do ping first to wakeup modem if required
+	avg_ping=$(get_avg_ping)
 	modem_status=$(get_modem_status)
 	conn_type=$(get_connection_type)
-	avg_ping=$(get_avg_ping)
 
 	status_str="Status: uplink IP: ${uplink_ip}; Modem status: ${modem_status}; Connection type: ${conn_type}; Avg ping: ${avg_ping}ms"
 
