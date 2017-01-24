@@ -76,7 +76,7 @@ while true; do
 	fi
 
 	# check connection quality (avg ping)
-	if [ "x${avg_ping}" = "x" || $(echo "${avg_ping} > ${AVG_PING_THRESHOLD}" | bc -l) = "1" ]; then
+	if [ "x${avg_ping}" = "x" -o $(echo "${avg_ping} > ${AVG_PING_THRESHOLD}" | bc -l) = "1" ]; then
 		logger "$0 - Ping too bad: ${avg_ping}. Reconnecting. ${status_str}"
 		reconnect_modem
 		continue
