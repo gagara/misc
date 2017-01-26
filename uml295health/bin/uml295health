@@ -49,7 +49,9 @@ while true; do
 	modem_status=$(get_modem_status)
 	conn_type=$(get_connection_type)
 
-	status_str="Status: uplink IP: ${uplink_ip}; Modem status: ${modem_status}; Connection type: ${conn_type}; Avg ping: ${avg_ping}ms"
+	[[ "x${avg_ping}" = "x" ]] && avg_ping="?"
+
+	status_str="Status: uplink IP: ${uplink_ip}; Modem status: ${modem_status}; Connection type: ${conn_type}; Avg ping: ${avg_ping} ms"
 
 	# check uplink interface
 	if [ -z "${uplink_ip}" ]; then
@@ -76,8 +78,8 @@ while true; do
 	fi
 
 	# check connection quality (avg ping)
-	if [ "x${avg_ping}" = "x" -o $(echo "${avg_ping} > ${AVG_PING_THRESHOLD}" | bc -l) = "1" ]; then
-		logger "$0 - Ping too bad: ${avg_ping}. Reconnecting. ${status_str}"
+	if [ "${avg_ping}" = "?" ] || [ $(echo "${avg_ping} > ${AVG_PING_THRESHOLD}" | bc -l) = "1" ]; then
+		logger "$0 - Ping too bad: ${avg_ping} ms. Reconnecting. ${status_str}"
 		reconnect_modem
 		continue
 	fi
