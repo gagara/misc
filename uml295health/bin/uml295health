@@ -11,7 +11,7 @@ MODEM_CTRL_IP=${MODEM_CTRL_IP:-192.168.32.2}
 PING_PROBE_HOST=${PING_PROBE_HOST:-localhost}
 AVG_PING_THRESHOLD=${AVG_PING_THRESHOLD:-200}
 
-STATUS_CONNECTED="connected"
+STATUSES_OK="connected,connecting,disconnecting"
 EVDO_CONN_TYPE="EVDO"
 
 get_uplink_ip() {
@@ -62,7 +62,7 @@ while true; do
 	fi
 
 	# check modem status
-	if [ "${modem_status}" != "$STATUS_CONNECTED" ]; then
+	if [ -z "`echo $STATUSES_OK | grep $modem_status`" ]; then
 		# modem not connected. reconnect
 		logger "$0 - Not connected. Reconnecting. ${status_str}"
 		reconnect_modem
