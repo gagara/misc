@@ -8,10 +8,10 @@ RUN apt-get update && \
     apt-get install -y oracle-java8-installer && \
     rm -rf /var/lib/apt/lists/*
 
+RUN echo "enable-shm = no" >> /etc/pulse/client.conf
+
 RUN adduser firefox
 ENV HOME /home/firefox
-RUN mkdir -p /home/firefox/.config/pulse && \
-    echo "enable-shm = no" > /home/firefox/.config/pulse/client.conf
 
 VOLUME /home/firefox
 USER firefox

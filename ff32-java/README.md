@@ -1,18 +1,4 @@
-# Docker image of Firefox 32bit with Oracle java support
-
-## Configure pulseaudio on host machine
-[https://wiki.archlinux.org/index.php/PulseAudio/Examples#PulseAudio_over_network](https://wiki.archlinux.org/index.php/PulseAudio/Examples#PulseAudio_over_network)
-
-### In /etc/pulse/default.pa:
-```
-load-module module-native-protocol-tcp auth-ip-acl=192.168.0.0/28 auth-anonymous=1
-```
-where 192.168.0.0/28 -- subnet of Docker containers (machine)
-
-### Restart pulseaudio
-```
-pulseaudio -k
-```
+# Docker image of Firefox (32bit) with Oracle java support
 
 ## Build image
 ```
