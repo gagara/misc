@@ -1,0 +1,25 @@
+{
+	"configurations": {
+		"Java Attach": {
+			"filetypes": [ "java" ],
+			"adapter": {
+				"extends": "vscode-java",
+				"sync_timeout": 90000,
+				"async_timeout": 90000
+			},
+			"default": true,
+			"configuration": {
+				"request": "attach",
+				"projectName": "${ProjectName}",
+				"host": "127.0.0.1",
+				"port": "${DebugPort}"
+			},
+			"breakpoints": {
+				"exception": {
+					"caught": "N",
+					"uncaught": "N"
+				}
+			}
+		}
+	}
+}
