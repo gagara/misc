@@ -27,12 +27,14 @@
         "com",
         "io"
     ],
-    "java.completion.overwrite": "false",
-    "java.completion.guessMethodArguments": "true",
+    "java.completion.overwrite": false,
+    "java.completion.guessMethodArguments": true,
     "java.sources.organizeImports.starThreshold": 6,
     "java.sources.organizeImports.staticStarThreshold": 6,
     "explorer.keyMappings.global": {
         "<S-Left>": ["wait", "collapse"],
         "<S-Right>": ["wait", "expandable?", "expand", "open"]
-    }
+    },
+    "pyright.inlayHints.enable": false,
+    "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/15.0.1/clangd_15.0.1/bin/clangd"
 }
