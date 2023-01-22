@@ -2,6 +2,7 @@
 " curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 call plug#begin()
 Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-rhubarb'
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'puremourning/vimspector'
@@ -28,7 +29,7 @@ set autoread
 "colorscheme default
 if has("gui_running")
 	colorscheme evening
-	set guifont=Liberation\ Mono\ 11
+	set guifont=Liberation\ Mono\ 14
 	set guioptions -=T
 	set guioptions -=m
 	set guioptions +=c
@@ -51,6 +52,7 @@ nnoremap <leader>j :%!python -m json.tool<CR>:set ft=json<CR>
 nnoremap <F7> :botright terminal<CR> 
 nnoremap <S-F7> :let $VIM_DIR=expand('%:p:h')<CR>:botright terminal<CR>cd $VIM_DIR<CR> 
 nnoremap <silent> cd :exec 'cd ' . coc_project_root<CR>
+nnoremap gp `[v`]
 
 " omni completion
 set completeopt=longest,menuone
@@ -280,24 +282,20 @@ nmap <Leader><F3> :VimspectorReset<CR>
 nmap <silent> <leader>lb :call vimspector#ListBreakpoints()<CR>
 
 " Java Remote debug
-command! -nargs=0 JavaStartDebugAdapter :call _JavaStartDebugAdapter()
-function! _SetJavaDAPPortCallback(err, port)
-    if !empty(a:port)
-        let $DAPPort = a:port
-        let @" = $DAPPort
-        echo 'started java debug adapter on port ' . a:port
-    endif
+nmap <silent> <leader>jd :call JavaStartRemoteDebug()<CR>
+function! JavaStartRemoteDebugCallback(err, port)
+  call vimspector#LaunchWithSettings({ "configuration": "Java Attach", "DAPPort": a:port })
 endfunction
-function _JavaStartDebugAdapter()
-    call CocActionAsync('runCommand', 'vscode.java.startDebugSession', function('_SetJavaDAPPortCallback'))
+function! JavaSetDAPPort(err, port)
+    let $JAVA_DAP_PORT = a:port
+endfunction
+function JavaTestRemoteDebug()
+  call CocActionAsync('runCommand', 'vscode.java.startDebugSession', function('JavaSetDAPPort'))
+endfunction
+function JavaStartRemoteDebug()
+  call CocActionAsync('runCommand', 'vscode.java.startDebugSession', function('JavaStartRemoteDebugCallback'))
 endfunction
 
-command! -nargs=0 DebugJavaRemoteApp :call _JavaDebugRemoteApp()
-function! _JavaDebugRemoteApp()
-    let cfg = { 'configuration': 'Java Attach' }
-    if !empty($DAPPort) | let cfg.DAPPort = $DAPPort | endif
-    call vimspector#LaunchWithSettings(cfg)
-endfunction
 
 " vim-test plugin
 let test#strategy = "vimterminal"
@@ -309,7 +307,12 @@ nmap <leader>tt :TestNearest
 nmap <leader>tf :TestFile
 " Test Suite
 nmap <leader>ts :TestSuite
+" Java (Gradle) Debug Test
+nmap <leader>ttjg :TestNearest --debug-jvm
+" Java (Maven) Debug Test
+nmap <leader>ttjm :TestNearest -Dmaven.surefire.debug 
 " switch project root for vim-test plugin
+autocmd BufEnter * :call SetVimtestProjectRootAndJavaRunner(expand('%:p'))
 function! SetVimtestProjectRootAndJavaRunner(file)
 	if exists("g:WorkspaceFolders")
 		for f in g:WorkspaceFolders
@@ -327,26 +330,9 @@ function! SetVimtestProjectRootAndJavaRunner(file)
         let g:coc_project_root = fnamemodify(a:file, ':h')
 	endif
 endfunction
-augroup vimtest
-    autocmd!
-    autocmd BufEnter * :call SetVimtestProjectRootAndJavaRunner(expand('%:p'))
-augroup END
-
-function! VimspectorJavaStrategy(cmd)
-    if g:test#java#runner == 'gradletest' | let dbg_cmd = a:cmd . ' --debug-jvm' | endif
-    if g:test#java#runner == 'maventest' | let dbg_cmd = a:cmd . ' -Dmaven.surefire.debug' | endif
-    if exists("dbg_cmd")
-        let cfg = { 'configuration': 'Java Run and Attach', 'DebuggeeCommand': dbg_cmd }
-        if !empty($DAPPort) | let cfg.DAPPort = $DAPPort | endif
-        call vimspector#LaunchWithSettings(cfg)
-    endif
-endfunction
-let g:test#custom_strategies = {'vimspector-java': function('VimspectorJavaStrategy')}
 
 " integration tests (gradle)
 command! -nargs=* TestSuiteInt   :TestSuite   -x test integrationTest <args>
 command! -nargs=* TestFileInt    :TestFile    -x test integrationTest <args>
 command! -nargs=* TestNearestInt :TestNearest -x test integrationTest <args>
 
-" debug java test with Vimspector
-command! -nargs=* DebugJavaUnitTest :TestNearest -strategy=vimspector-java <args>

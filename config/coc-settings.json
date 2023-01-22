@@ -1,25 +1,31 @@
 {
+    "coc.preferences.rootPatterns": [
+        ".git",
+        ".hg",
+        ".vim",
+        ".projections.json"
+    ],
     "coc.preferences.extensionUpdateCheck": "never",
     "suggest.autoTrigger": "none",
-    "java.home": "/opt/openjdk-bin-17",
+    "java.home": "/usr/lib/jvm/java-17-openjdk",
     "java.configuration.runtimes": [
         {
             "name": "JavaSE-1.8",
-            "path": "/opt/openjdk-bin-8"
+            "path": "/usr/lib/jvm/java-8-openjdk"
         },
         {
             "name": "JavaSE-11",
-            "path": "/opt/openjdk-bin-11"
+            "path": "/usr/lib/jvm/java-11-openjdk"
         },
         {
             "name": "JavaSE-17",
-            "path": "/opt/openjdk-bin-17",
+            "path": "/usr/lib/jvm/java-17-openjdk",
             "default": true
         }
     ],
-    "java.jdt.ls.vmargs": "-javaagent:/home/slg/opt/lombok.jar",
+    "java.jdt.ls.vmargs": "-javaagent:/home/vgagara/opt/lombok.jar",
     "java.debug.settings.showStaticVariables": true,
-    "java.format.settings.url": "/home/slg/.config/coc/extensions/node_modules/coc-java/formatters/eclipse-formatter.xml",
+    "java.format.settings.url": "/home/vgagara/projects/Talend/etc/eclipse-formatter.xml",
     "java.completion.importOrder": [
         "java",
         "javax",
@@ -27,14 +33,12 @@
         "com",
         "io"
     ],
-    "java.completion.overwrite": false,
-    "java.completion.guessMethodArguments": true,
+    "java.completion.overwrite": "false",
+    "java.completion.guessMethodArguments": "true",
     "java.sources.organizeImports.starThreshold": 6,
     "java.sources.organizeImports.staticStarThreshold": 6,
     "explorer.keyMappings.global": {
         "<S-Left>": ["wait", "collapse"],
         "<S-Right>": ["wait", "expandable?", "expand", "open"]
-    },
-    "pyright.inlayHints.enable": false,
-    "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/15.0.1/clangd_15.0.1/bin/clangd"
+    }
 }
