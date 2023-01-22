@@ -1,9 +1,8 @@
 {
 	"configurations": {
 		"Java Attach": {
-            "adapter": {
+			"adapter": {
 				"extends": "vscode-java",
-                "port": "${JAVA_DAP_PORT:$JAVA_DAP_PORT}",
 				"sync_timeout": 90000,
 				"async_timeout": 90000
 			},
@@ -13,6 +12,33 @@
 				"projectName": "${ProjectName}",
 				"host": "127.0.0.1",
 				"port": "${DebugPort:5005}"
+			},
+			"breakpoints": {
+				"exception": {
+					"caught": "N",
+					"uncaught": "N"
+				}
+			}
+		},
+		"Java Run and Attach": {
+			"adapter": {
+				"extends": "vscode-java",
+				"launch": {
+					"remote": {
+						"runCommand": [
+							"*${DebuggeeCommand}"
+						]
+					},
+					"delay": "${DebuggeeStartDelay:5}"
+				}
+			},
+			"remote-request": "launch",
+			"remote-cmdLine": [],
+			"configuration": {
+				"request": "attach",
+				"projectName": "${ProjectName:test}",
+				"host": "127.0.0.1",
+				"port": "5005"
 			},
 			"breakpoints": {
 				"exception": {
