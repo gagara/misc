@@ -7,25 +7,25 @@
     ],
     "coc.preferences.extensionUpdateCheck": "never",
     "suggest.autoTrigger": "none",
-    "java.home": "/usr/lib/jvm/java-17-openjdk",
+    "java.home": "/opt/openjdk-bin-17",
     "java.configuration.runtimes": [
         {
             "name": "JavaSE-1.8",
-            "path": "/usr/lib/jvm/java-8-openjdk"
+            "path": "/opt/openjdk-bin-8"
         },
         {
             "name": "JavaSE-11",
-            "path": "/usr/lib/jvm/java-11-openjdk"
+            "path": "/opt/openjdk-bin-11"
         },
         {
             "name": "JavaSE-17",
-            "path": "/usr/lib/jvm/java-17-openjdk",
+            "path": "/opt/openjdk-bin-17",
             "default": true
         }
     ],
-    "java.jdt.ls.vmargs": "-javaagent:/home/vgagara/opt/lombok.jar",
+    "java.jdt.ls.vmargs": "-javaagent:/home/slg/opt/lombok.jar",
     "java.debug.settings.showStaticVariables": true,
-    "java.format.settings.url": "/home/vgagara/projects/Talend/etc/eclipse-formatter.xml",
+    "java.format.settings.url": "/home/slg/.config/coc/extensions/node_modules/coc-java/formatters/eclipse-formatter.xml",
     "java.completion.importOrder": [
         "java",
         "javax",

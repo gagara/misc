@@ -29,7 +29,7 @@ set autoread
 "colorscheme default
 if has("gui_running")
 	colorscheme evening
-	set guifont=Liberation\ Mono\ 14
+	set guifont=Liberation\ Mono\ 11
 	set guioptions -=T
 	set guioptions -=m
 	set guioptions +=c
