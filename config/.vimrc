@@ -280,13 +280,23 @@ nmap <Leader><F3> :VimspectorReset<CR>
 nmap <silent> <leader>lb :call vimspector#ListBreakpoints()<CR>
 
 " Java Remote debug
-nmap <silent> <leader>jda :call JavaStartDebugAdapter()<CR>
-function! SetJavaDAPPortCallback(err, port)
-  let $JAVA_DAP_PORT = a:port
-  echo 'started java debug adapter on port ' . a:port
+command! -nargs=0 JavaStartDebugAdapter :call _JavaStartDebugAdapter()
+function! _SetJavaDAPPortCallback(err, port)
+    if !empty(a:port)
+        let $DAPPort = a:port
+        let @" = $DAPPort
+        echo 'started java debug adapter on port ' . a:port
+    endif
 endfunction
-function JavaStartDebugAdapter()
-  call CocActionAsync('runCommand', 'vscode.java.startDebugSession', function('SetJavaDAPPortCallback'))
+function _JavaStartDebugAdapter()
+    call CocActionAsync('runCommand', 'vscode.java.startDebugSession', function('_SetJavaDAPPortCallback'))
+endfunction
+
+command! -nargs=0 DebugJavaRemoteApp :call _JavaDebugRemoteApp()
+function! _JavaDebugRemoteApp()
+    let cfg = { 'configuration': 'Java Attach' }
+    if !empty($DAPPort) | let cfg.DAPPort = $DAPPort | endif
+    call vimspector#LaunchWithSettings(cfg)
 endfunction
 
 " vim-test plugin
@@ -299,13 +309,7 @@ nmap <leader>tt :TestNearest
 nmap <leader>tf :TestFile
 " Test Suite
 nmap <leader>ts :TestSuite
-" Debug java test with Vimspector
-nmap <leader>dj :TestNearest -strategy=vimspector-java
 " switch project root for vim-test plugin
-augroup vimtest
-    autocmd!
-    autocmd BufEnter * :call SetVimtestProjectRootAndJavaRunner(expand('%:p'))
-augroup END
 function! SetVimtestProjectRootAndJavaRunner(file)
 	if exists("g:WorkspaceFolders")
 		for f in g:WorkspaceFolders
@@ -323,15 +327,18 @@ function! SetVimtestProjectRootAndJavaRunner(file)
         let g:coc_project_root = fnamemodify(a:file, ':h')
 	endif
 endfunction
+augroup vimtest
+    autocmd!
+    autocmd BufEnter * :call SetVimtestProjectRootAndJavaRunner(expand('%:p'))
+augroup END
+
 function! VimspectorJavaStrategy(cmd)
-    if g:test#java#runner == 'gradletest'
-        let dbg_cmd = a:cmd . ' --debug-jvm'
-    endif
-    if g:test#java#runner == 'maventest'
-        let dbg_cmd = a:cmd . ' -Dmaven.surefire.debug'
-    endif
+    if g:test#java#runner == 'gradletest' | let dbg_cmd = a:cmd . ' --debug-jvm' | endif
+    if g:test#java#runner == 'maventest' | let dbg_cmd = a:cmd . ' -Dmaven.surefire.debug' | endif
     if exists("dbg_cmd")
-        call vimspector#LaunchWithSettings( #{ configuration: 'Java Run and Attach', DebuggeeCommand: dbg_cmd } )
+        let cfg = { 'configuration': 'Java Run and Attach', 'DebuggeeCommand': dbg_cmd }
+        if !empty($DAPPort) | let cfg.DAPPort = $DAPPort | endif
+        call vimspector#LaunchWithSettings(cfg)
     endif
 endfunction
 let g:test#custom_strategies = {'vimspector-java': function('VimspectorJavaStrategy')}
@@ -341,3 +348,5 @@ command! -nargs=* TestSuiteInt   :TestSuite   -x test integrationTest <args>
 command! -nargs=* TestFileInt    :TestFile    -x test integrationTest <args>
 command! -nargs=* TestNearestInt :TestNearest -x test integrationTest <args>
 
+" debug java test with Vimspector
+command! -nargs=* DebugJavaUnitTest :TestNearest -strategy=vimspector-java <args>

@@ -3,7 +3,6 @@
 		"Java Attach": {
 			"adapter": {
 				"extends": "vscode-java",
-				"port": "${JAVA_DAP_PORT}",
 				"sync_timeout": 90000,
 				"async_timeout": 90000
 			},
@@ -24,7 +23,6 @@
 		"Java Run and Attach": {
 			"adapter": {
 				"extends": "vscode-java",
-				"port": "${JAVA_DAP_PORT}",
 				"launch": {
 					"remote": {
 						"runCommand": [
