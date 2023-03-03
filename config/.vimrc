@@ -25,6 +25,9 @@ set hlsearch
 set listchars=eol:$,tab:>-,trail:.
 set backspace=indent,eol,start
 set autoread
+set signcolumn=yes
+
+let g:zip_nomax=1
 
 "colorscheme default
 if has("gui_running")
@@ -132,6 +135,12 @@ nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
+" always open in CocList
+nmap <silent> <leader>gd :<C-U>call CocActionAsync('jumpDefinition', v:false)<CR>
+nmap <silent> <leader>gi :<C-U>call CocActionAsync('jumpImplementation', v:false)<CR>
+nmap <silent> <leader>gr :<C-U>call CocActionAsync('jumpReferences', v:false)<CR>
+" Java type hierarchy
+nmap <silent> <leader>gh :CocCommand java.action.showTypeHierarchy<CR>
 
 " Use K to show documentation in preview window.
 nnoremap <silent> K :call ShowDocumentation()<CR>
@@ -154,20 +163,15 @@ nmap <leader>rn <Plug>(coc-rename)
 " Formatting selected code.
 xmap <leader>f  <Plug>(coc-format-selected)
 nmap <leader>f  <Plug>(coc-format-selected)
+nmap <leader>F  <Plug>(coc-format)
 
 " Use CTRL-S for selections ranges.
 " Requires 'textDocument/selectionRange' support of language server.
 nmap <silent> <C-s> <Plug>(coc-range-select)
 xmap <silent> <C-s> <Plug>(coc-range-select)
 
-" Add `:Format` command to format current buffer.
-command! -nargs=0 Format :call CocAction('format')
-
 " Add `:Fold` command to fold current buffer.
 command! -nargs=? Fold :call     CocAction('fold', <f-args>)
-
-" Add `:OR` command for organize imports of the current buffer.
-command! -nargs=0 OR   :call     CocAction('runCommand', 'editor.action.organizeImport')
 
 " Applying codeAction to the selected region.
 " Example: `<leader>aap` for current paragraph
@@ -237,6 +241,8 @@ nnoremap <silent><nowait> <space>p  :<C-u>CocListResume<CR>
 nmap <leader>pu :CocCommand java.projectConfiguration.update<CR>
 " Project-Compile
 nmap <leader>pc :CocCommand java.workspace.compile<CR>
+" Project-Import
+nmap <leader>pi :CocCommand java.project.import.command<CR>
 " Diagnostics list no-quit
 nmap <leader>ld :CocList --strict --ignore-case --no-quit diagnostics<CR>
 " Location list no-quit
@@ -265,6 +271,15 @@ function! CopyFullFilePath()
 endfunction
 nnoremap <silent> <leader>c :call CopyFullFilePath()<CR>
 
+function! CopyJavaQualifiedClassName()
+    let doc = CocAction('getHover')
+    if get(doc, 0, '') != ''
+        let @+ = doc[0]
+        echo doc[0]
+    endif
+endfunction
+nnoremap <silent> <leader>qc :call CopyJavaQualifiedClassName()<CR>
+
 
 " Vimspector plugin
 let g:vimspector_install_gadgets = [ 'debugpy', 'vscode-java-debug' ]
@@ -276,10 +291,10 @@ nmap <Leader>di <Plug>VimspectorBalloonEval
 " for visual mode, the visually selected text
 xmap <Leader>di <Plug>VimspectorBalloonEval
 
-nmap <LocalLeader><F11> <Plug>VimspectorUpFrame
-nmap <LocalLeader><F12> <Plug>VimspectorDownFrame
+nmap <Leader><F11> <Plug>VimspectorUpFrame
+nmap <Leader><F12> <Plug>VimspectorDownFrame
 nmap <Leader><F3> :VimspectorReset<CR>
-nmap <silent> <leader>lb :call vimspector#ListBreakpoints()<CR>
+nmap <Leader>B <Plug>VimspectorBreakpoints
 
 " Java Remote debug
 command! -nargs=0 JavaStartDebugAdapter :call _JavaStartDebugAdapter()

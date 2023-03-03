@@ -1,5 +1,5 @@
 {
-    "coc.preferences.rootPatterns": [
+    "workspace.rootPatterns": [
         ".git",
         ".hg",
         ".vim",
@@ -7,7 +7,7 @@
     ],
     "coc.preferences.extensionUpdateCheck": "never",
     "suggest.autoTrigger": "none",
-    "java.home": "/usr/lib/jvm/java-17-openjdk",
+    "java.jdt.ls.java.home": "/usr/lib/jvm/java-17-openjdk",
     "java.configuration.runtimes": [
         {
             "name": "JavaSE-1.8",
@@ -23,7 +23,9 @@
             "default": true
         }
     ],
+    "java.jdt.ls.lombokSupport.enabled": false,
     "java.jdt.ls.vmargs": "-javaagent:/home/vgagara/opt/lombok.jar",
+    "java.import.gradle.annotationProcessing.enabled": false,
     "java.debug.settings.showStaticVariables": true,
     "java.format.settings.url": "/home/vgagara/projects/Talend/etc/eclipse-formatter.xml",
     "java.completion.importOrder": [
@@ -33,14 +35,25 @@
         "com",
         "io"
     ],
-    "java.completion.overwrite": false,
     "java.completion.guessMethodArguments": true,
+    "java.inlayHints.parameterNames.enabled": "none",
     "java.sources.organizeImports.starThreshold": 6,
     "java.sources.organizeImports.staticStarThreshold": 6,
+    "java.codeGeneration.useBlocks": true,
     "explorer.keyMappings.global": {
-        "<S-Left>": ["wait", "collapse"],
-        "<S-Right>": ["wait", "expandable?", "expand", "open"]
+        "<S-Left>": [
+            "wait",
+            "collapse"
+        ],
+        "<S-Right>": [
+            "wait",
+            "expandable?",
+            "expand",
+            "open"
+        ]
     },
-    "pyright.inlayHints.enable": false,
-    "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/15.0.1/clangd_15.0.1/bin/clangd"
+    "pyright.inlayHints.functionReturnTypes": false,
+    "pyright.inlayHints.variableTypes": false,
+    "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/15.0.1/clangd_15.0.1/bin/clangd",
+    "diagnostic.warningSign": ">>"
 }
