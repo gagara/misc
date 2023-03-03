@@ -39,7 +39,6 @@ if has("gui_running")
 endif
 
 highlight Pmenu ctermbg=3 guibg=DarkYellow
-highlight FgCocErrorFloatBgCocFloating ctermfg=15 ctermbg=5 guibg=DarkMagenta
 
 set undodir=~/.vim/undo
 set undofile
@@ -50,10 +49,8 @@ nnoremap <leader>l :set list!<CR>
 nnoremap <leader>n :set number!<CR>
 nnoremap <Esc>/ :nohl<CR> 
 nnoremap <S-Up> @:
-"nnoremap <leader>c :let @+=@%<CR>
 nnoremap <leader>j :%!python -m json.tool<CR>:set ft=json<CR>
-nnoremap <F7> :botright terminal<CR> 
-nnoremap <S-F7> :let $VIM_DIR=expand('%:p:h')<CR>:botright terminal<CR>cd $VIM_DIR<CR> 
+nnoremap <F7> :botright terminal<CR>
 nnoremap <silent> cd :exec 'cd ' . coc_project_root<CR>
 nnoremap gp `[v`]
 
@@ -61,11 +58,6 @@ nnoremap gp `[v`]
 set completeopt=longest,menuone
 inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
 inoremap <expr> <C-n> pumvisible() ? '<C-n>' : \ '<C-n><C-r>=pumvisible() ? "\<lt>Down>" : ""<CR>'
-
-" Switch between buffers using Alt+<arrows>
-"nnoremap <M-Down> :ls<CR>:b
-"nnoremap <M-Left> :bp<CR>
-"nnoremap <M-Right> :bn<CR>
 
 " tab navigation: Alt+1, Alt+2, Alt+3,...
 nnoremap <M-1> 1gt
@@ -106,12 +98,11 @@ let g:ctrlp_cmd = 'CtrlPBuffer'
 " Coc plugin
 let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-pyright', 'coc-java', 'coc-java-vimspector']
 
-" disable it by default
-let g:coc_start_at_startup=0
-
 " enable for GUI only
 if has("gui_running")
-	let g:coc_start_at_startup=1
+    let g:coc_start_at_startup=1
+else
+    let g:coc_start_at_startup=0
 endif
 
 " Use <c-space> to trigger completion.
@@ -129,6 +120,7 @@ nmap <silent> [g <Plug>(coc-diagnostic-prev)
 nmap <silent> ]g <Plug>(coc-diagnostic-next)
 nmap <silent> [G <Plug>(coc-diagnostic-prev-error)
 nmap <silent> ]G <Plug>(coc-diagnostic-next-error)
+nmap <silent> <leader>g <Plug>(coc-diagnostic-info)
 
 " GoTo code navigation.
 nmap <silent> gd <Plug>(coc-definition)
@@ -153,8 +145,6 @@ function! ShowDocumentation()
   endif
 endfunction
 
-" Highlight the symbol and its references when holding the cursor.
-"autocmd CursorHold * silent call CocActionAsync('highlight')
 nmap <silent> <leader>h  :call CocActionAsync('highlight')<CR>
 
 " Symbol renaming.
@@ -254,31 +244,12 @@ nmap <silent> <leader>so :call CocAction('showOutgoingCalls')<CR>
 " Organize imports
 nmap <silent> <leader>oi :CocCommand editor.action.organizeImport<CR>
 
-" bug https://github.com/vim/vim/issues/6043
-let g:coc_borderchars=['━', '┃', '━', '┃', '┏', '┓', '┛', '┗']
-"let g:coc_borderchars=[]
 
 " coc-explorer
 nnoremap <silent> <leader><F2> :CocCommand explorer<CR>
 nnoremap <silent> <leader>gs :call CocActionAsync('runCommand', 'explorer.doAction', 'closest', ['reveal:path:'.@+])<CR>
 
-function! CopyFullFilePath()
-    if @% =~ '^jdt\:\/\/'
-        let p = split(substitute(@%, '%5C', '', "g"), '?=\|=/')
-        if index(p, 1) | let @+ = substitute(substitute(p[1], '^.*//', '/', ""), '%60.*', '', "") | return | endif
-    endif
-    let @+ = @%
-endfunction
-nnoremap <silent> <leader>c :call CopyFullFilePath()<CR>
-
-function! CopyJavaQualifiedClassName()
-    let doc = CocAction('getHover')
-    if get(doc, 0, '') != ''
-        let @+ = doc[0]
-        echo doc[0]
-    endif
-endfunction
-nnoremap <silent> <leader>qc :call CopyJavaQualifiedClassName()<CR>
+nnoremap <S-F7> :botright call term_start("bash", {"term_finish":"close","cwd":g:coc_project_root})<CR>
 
 
 " Vimspector plugin
@@ -326,28 +297,6 @@ nmap <leader>tt :TestNearest
 nmap <leader>tf :TestFile
 " Test Suite
 nmap <leader>ts :TestSuite
-" switch project root for vim-test plugin
-function! SetVimtestProjectRootAndJavaRunner(file)
-	if exists("g:WorkspaceFolders")
-		for f in g:WorkspaceFolders
-			if match(a:file, f, 0) == 0
-                let g:coc_project_root = f
-                let g:test#project_root = f
-                if !empty(glob(f . '/build.gradle'))
-                    let g:test#java#runner = 'gradletest'
-                else
-                    let g:test#java#runner = 'maventest'
-                endif
-                return
-            endif
-		endfor
-        let g:coc_project_root = fnamemodify(a:file, ':h')
-	endif
-endfunction
-augroup vimtest
-    autocmd!
-    autocmd BufEnter * :call SetVimtestProjectRootAndJavaRunner(expand('%:p'))
-augroup END
 
 function! VimspectorJavaStrategy(cmd)
     if g:test#java#runner == 'gradletest' | let dbg_cmd = a:cmd . ' --debug-jvm' | endif
@@ -367,3 +316,48 @@ command! -nargs=* TestNearestInt :TestNearest -x test integrationTest <args>
 
 " debug java test with Vimspector
 command! -nargs=* DebugJavaUnitTest :TestNearest -strategy=vimspector-java <args>
+
+
+" misc stuff
+
+" switch coc project root, set java#runner for vim-test plugin
+function! SetProjectRootAndJavaRunner(file)
+	if exists("g:WorkspaceFolders")
+		for f in g:WorkspaceFolders
+			if match(a:file, f, 0) == 0
+                let g:coc_project_root = f
+                let g:test#project_root = f
+                if !empty(glob(f . '/build.gradle'))
+                    let g:test#java#runner = 'gradletest'
+                else
+                    let g:test#java#runner = 'maventest'
+                endif
+                return
+            endif
+		endfor
+        let g:coc_project_root = fnamemodify(a:file, ':h')
+	endif
+endfunction
+augroup misc
+    autocmd!
+    autocmd BufEnter * :call SetProjectRootAndJavaRunner(expand('%:p'))
+augroup END
+
+function! CopyFullFilePath()
+    if @% =~ '^jdt\:\/\/'
+        let p = split(substitute(@%, '%5C', '', "g"), '?=\|=/')
+        if index(p, 1) | let @+ = substitute(substitute(p[1], '^.*//', '/', ""), '%60.*', '', "") | return | endif
+    endif
+    let @+ = @%
+endfunction
+nnoremap <silent> <leader>c :call CopyFullFilePath()<CR>
+
+function! CopyJavaQualifiedClassName()
+    let doc = CocAction('getHover')
+    if get(doc, 0, '') != ''
+        let @+ = doc[0]
+        echo doc[0]
+    endif
+endfunction
+nnoremap <silent> <leader>qc :call CopyJavaQualifiedClassName()<CR>
+
