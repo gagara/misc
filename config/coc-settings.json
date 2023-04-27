@@ -7,6 +7,7 @@
     ],
     "coc.preferences.extensionUpdateCheck": "never",
     "suggest.autoTrigger": "none",
+    "diagnostic.warningSign": ">>",
     "java.jdt.ls.java.home": "/usr/lib/jvm/java-17-openjdk",
     "java.configuration.runtimes": [
         {
@@ -26,8 +27,14 @@
     "java.jdt.ls.lombokSupport.enabled": false,
     "java.jdt.ls.vmargs": "-javaagent:/home/vgagara/opt/lombok.jar",
     "java.import.gradle.annotationProcessing.enabled": false,
+    "java.compile.nullAnalysis.mode": "automatic",
     "java.debug.settings.showStaticVariables": true,
+    "java.inlayHints.parameterNames.enabled": "none",
+    "java.codeGeneration.useBlocks": true,
     "java.format.settings.url": "/home/vgagara/projects/Talend/etc/eclipse-formatter.xml",
+    "java.sources.organizeImports.starThreshold": 6,
+    "java.sources.organizeImports.staticStarThreshold": 6,
+    "java.completion.guessMethodArguments": true,
     "java.completion.importOrder": [
         "java",
         "javax",
@@ -35,11 +42,19 @@
         "com",
         "io"
     ],
-    "java.completion.guessMethodArguments": true,
-    "java.inlayHints.parameterNames.enabled": "none",
-    "java.sources.organizeImports.starThreshold": 6,
-    "java.sources.organizeImports.staticStarThreshold": 6,
-    "java.codeGeneration.useBlocks": true,
+    "java.completion.favoriteStaticMembers": [
+        "org.junit.Assert.*",
+        "org.junit.Assume.*",
+        "org.junit.jupiter.api.Assertions.*",
+        "org.junit.jupiter.api.Assumptions.*",
+        "org.junit.jupiter.api.DynamicContainer.*",
+        "org.junit.jupiter.api.DynamicTest.*",
+        "org.mockito.Mockito.*",
+        "org.mockito.ArgumentMatchers.*",
+        "org.mockito.Answers.*",
+        "org.hamcrest.MatcherAssert.*",
+        "org.hamcrest.CoreMatchers.*"
+    ],
     "explorer.keyMappings.global": {
         "<S-Left>": [
             "wait",
@@ -54,6 +69,5 @@
     },
     "pyright.inlayHints.functionReturnTypes": false,
     "pyright.inlayHints.variableTypes": false,
-    "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/15.0.1/clangd_15.0.1/bin/clangd",
-    "diagnostic.warningSign": ">>"
+    "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/15.0.1/clangd_15.0.1/bin/clangd"
 }

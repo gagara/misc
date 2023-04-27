@@ -36,6 +36,8 @@ if has("gui_running")
 	set guioptions -=T
 	set guioptions -=m
 	set guioptions +=c
+    nnoremap <C-S-T> :tabnew<CR>
+    nnoremap <C-S-W> :tabclose<CR>
 endif
 
 highlight Pmenu ctermbg=3 guibg=DarkYellow
@@ -70,6 +72,20 @@ nnoremap <M-7> 7gt
 nnoremap <M-8> 8gt
 nnoremap <M-9> 9gt
 
+" shift+arrow selection
+nmap <S-Up> v<Up>
+nmap <S-Down> v<Down>
+nmap <S-Left> v<Left>
+nmap <S-Right> v<Right>
+vmap <S-Up> <Up>
+vmap <S-Down> <Down>
+vmap <S-Left> <Left>
+vmap <S-Right> <Right>
+imap <S-Up> <Esc>v<Up>
+imap <S-Down> <Esc>v<Down>
+imap <S-Left> <Esc>v<Left>
+imap <S-Right> <Esc>v<Right>
+
 " move line up/down with Alt+up/down
 nnoremap <silent> <M-Down> :m .+1<CR>==
 nnoremap <silent> <M-Up> :m .-2<CR>==
@@ -90,9 +106,14 @@ nmap <silent> <leader>* :SearchForWord<CR>
 nmap <space>f :grep -ir '' --include='*' .
 
 
+" fugitive plugin
+nmap gb :GBrowse <cfile><CR>
+
 " ctrlp plugin
 let g:ctrlp_working_path_mode = 'rc'
 let g:ctrlp_cmd = 'CtrlPBuffer'
+let g:ctrlp_regexp = 1
+let g:ctrlp_match_window = 'bottom,order:btt,min:1,max:10,results:30'
 
 
 " Coc plugin
@@ -226,11 +247,13 @@ nnoremap <silent><nowait> <space>j  :<C-u>CocNext<CR>
 nnoremap <silent><nowait> <space>k  :<C-u>CocPrev<CR>
 " Resume latest coc list.
 nnoremap <silent><nowait> <space>p  :<C-u>CocListResume<CR>
+" Goto workspace symbol under cursor
+nnoremap <silent><nowait> gs  :execute "CocList -I --input=".expand('<cfile>')." symbols"<CR>
 
 " Project-Update
 nmap <leader>pu :CocCommand java.projectConfiguration.update<CR>
 " Project-Compile
-nmap <leader>pc :CocCommand java.workspace.compile<CR>
+nmap <leader>pc :CocCommand java.project.build<CR>
 " Project-Import
 nmap <leader>pi :CocCommand java.project.import.command<CR>
 " Diagnostics list no-quit
@@ -297,6 +320,8 @@ nmap <leader>tt :TestNearest
 nmap <leader>tf :TestFile
 " Test Suite
 nmap <leader>ts :TestSuite
+" Test Last
+nmap <leader>tl :TestLast
 
 function! VimspectorJavaStrategy(cmd)
     if g:test#java#runner == 'gradletest' | let dbg_cmd = a:cmd . ' --debug-jvm' | endif
@@ -324,7 +349,7 @@ command! -nargs=* DebugJavaUnitTest :TestNearest -strategy=vimspector-java <args
 function! SetProjectRootAndJavaRunner(file)
 	if exists("g:WorkspaceFolders")
 		for f in g:WorkspaceFolders
-			if match(a:file, f, 0) == 0
+			if match(a:file, f . '/', 0) == 0
                 let g:coc_project_root = f
                 let g:test#project_root = f
                 if !empty(glob(f . '/build.gradle'))
@@ -361,3 +386,14 @@ function! CopyJavaQualifiedClassName()
 endfunction
 nnoremap <silent> <leader>qc :call CopyJavaQualifiedClassName()<CR>
 
+function! _JavaGradleDependencies(module, ...)
+    call term_start(["./gradlew", "-q", a:module.":dependencies", "--configuration", get(a:, 1, "compileClasspath")],{"cwd":g:coc_project_root})
+endfunction
+" args: [module] | [module configuration]. Default configuration 'compileClasspath'
+command! -nargs=+ JavaGradleDependencies :call _JavaGradleDependencies(<f-args>)
+
+function! _JavaGradleDependencyInsight(module, dependency, ...)
+    call term_start(["./gradlew", "-q", a:module.":dependencyInsight", "--configuration", get(a:, 2, "compileClasspath"), "--dependency", a:dependency],{"cwd":g:coc_project_root})
+endfunction
+" args: [module dependency] | [module dependency configuration]. Default configuration 'compileClasspath'
+command! -nargs=+ JavaGradleDependencyInsight :call _JavaGradleDependencyInsight(<f-args>)
