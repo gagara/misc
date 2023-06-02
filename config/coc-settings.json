@@ -53,7 +53,9 @@
         "org.mockito.ArgumentMatchers.*",
         "org.mockito.Answers.*",
         "org.hamcrest.MatcherAssert.*",
-        "org.hamcrest.CoreMatchers.*"
+        "org.hamcrest.CoreMatchers.*",
+        "org.apache.commons.collections.CollectionUtils",
+        "org.apache.commons.lang3.ArrayUtils"
     ],
     "explorer.keyMappings.global": {
         "<S-Left>": [

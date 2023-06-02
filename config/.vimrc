@@ -8,6 +8,7 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'puremourning/vimspector'
 Plug 'vim-test/vim-test'
 Plug 'itchyny/lightline.vim'
+Plug 'diepm/vim-rest-console'
 call plug#end()
 " end of vim-plug
 
@@ -21,11 +22,12 @@ set expandtab
 set number
 set ruler
 set hlsearch
-"set hidden
+set hidden
 set listchars=eol:$,tab:>-,trail:.
 set backspace=indent,eol,start
 set autoread
 set signcolumn=yes
+set cmdheight=2
 
 let g:zip_nomax=1
 
@@ -115,6 +117,14 @@ let g:ctrlp_cmd = 'CtrlPBuffer'
 let g:ctrlp_regexp = 1
 let g:ctrlp_match_window = 'bottom,order:btt,min:1,max:10,results:30'
 
+" vim-rest-console plugin
+let g:vrc_horizontal_split=1
+let g:vrc_response_default_content_type="application/json"
+let g:vrc_auto_format_response_patterns = {
+  \ 'json': 'python -m json.tool',
+  \ 'xml': 'xmllint --format -',
+\}
+
 
 " Coc plugin
 let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-pyright', 'coc-java', 'coc-java-vimspector']
@@ -141,7 +151,7 @@ nmap <silent> [g <Plug>(coc-diagnostic-prev)
 nmap <silent> ]g <Plug>(coc-diagnostic-next)
 nmap <silent> [G <Plug>(coc-diagnostic-prev-error)
 nmap <silent> ]G <Plug>(coc-diagnostic-next-error)
-nmap <silent> <leader>g <Plug>(coc-diagnostic-info)
+nmap <silent> <leader>gg <Plug>(coc-diagnostic-info)
 
 " GoTo code navigation.
 nmap <silent> gd <Plug>(coc-definition)
@@ -220,10 +230,11 @@ let g:lightline = {
 \ 'colorscheme': 'Tomorrow',
 \ 'active': {
 \   'left': [ [ 'mode', 'paste' ],
-\             [ 'cocstatus', 'readonly', 'filename', 'modified' ] ]
+\             [ 'cocstatus', 'readonly', 'filename', 'modified', 'gitbranch' ] ]
 \ },
 \ 'component_function': {
-\   'cocstatus': 'coc#status'
+\   'cocstatus': 'coc#status',
+\   'gitbranch': 'FugitiveHead'
 \ },
 \ }
 
@@ -387,13 +398,39 @@ endfunction
 nnoremap <silent> <leader>qc :call CopyJavaQualifiedClassName()<CR>
 
 function! _JavaGradleDependencies(module, ...)
-    call term_start(["./gradlew", "-q", a:module.":dependencies", "--configuration", get(a:, 1, "compileClasspath")],{"cwd":g:coc_project_root})
+    let cfg = get(a:, 1, "compileClasspath")
+    let bufname = ":".a:module.":".cfg.":dependencies"
+    execute "silent! bd! ".bufname
+    call term_start(["./gradlew", "-q", a:module.":dependencies", "--configuration", cfg],{"cwd":g:coc_project_root, "term_name":bufname})
 endfunction
 " args: [module] | [module configuration]. Default configuration 'compileClasspath'
 command! -nargs=+ JavaGradleDependencies :call _JavaGradleDependencies(<f-args>)
 
 function! _JavaGradleDependencyInsight(module, dependency, ...)
-    call term_start(["./gradlew", "-q", a:module.":dependencyInsight", "--configuration", get(a:, 2, "compileClasspath"), "--dependency", a:dependency],{"cwd":g:coc_project_root})
+    let cfg = get(a:, 2, "compileClasspath")
+    let bufname = ":".a:module.":".cfg.":".a:dependency.":dependencyInsight"
+    execute "silent! bd! ".bufname
+    call term_start(["./gradlew", "-q", a:module.":dependencyInsight", "--configuration", cfg, "--dependency", a:dependency],{"cwd":g:coc_project_root, "term_name":bufname})
 endfunction
 " args: [module dependency] | [module dependency configuration]. Default configuration 'compileClasspath'
 command! -nargs=+ JavaGradleDependencyInsight :call _JavaGradleDependencyInsight(<f-args>)
+
+function VrcHandleResponse()
+    if match(getline("."), '^##.*<<.\+') == -1 | return | endif
+    let cmd = map(split(getline("."), '##\|<<'), {k,v -> trim(v, ' ', 1)})
+    let output = getbufline(bufnr(get(g:, 'vrc_output_buffer_name', get(b:, 'vrc_output_buffer_name', '__REST_response__'))), 1, "$")
+    if len(output)
+        let repl = system(cmd[1], output)
+        if len(cmd[0])
+            call setline(1, map(getline(1, '$'), {k,v -> substitute(v, '^'.cmd[0].'.*', cmd[0].trim(repl), '')}))
+        else
+            call setqflist([], line('.') == a:firstline ? 'r' : 'a',
+            \    {'items': map(split(repl, '\n'), {k,v -> {'text':v, 'lnum':line('.')}})})
+            let currWin = winnr()
+            copen | execute currWin . 'wincmd w'
+        endif
+    endif
+endfunction
+autocmd FileType rest nnoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
+autocmd FileType rest inoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
+autocmd FileType rest vnoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
