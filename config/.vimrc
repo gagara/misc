@@ -28,6 +28,7 @@ set backspace=indent,eol,start
 set autoread
 set signcolumn=yes
 set cmdheight=2
+set guitablabel=%{exists('t:label')?t:label\ :''}
 
 let g:zip_nomax=1
 
@@ -51,7 +52,8 @@ let mapleader="\\"
 
 nnoremap <leader>l :set list!<CR>
 nnoremap <leader>n :set number!<CR>
-nnoremap <Esc>/ :nohl<CR> 
+nnoremap <silent> <space><space> :call matchadd("IncSearch", expand('<cword>'))<CR>
+nnoremap <silent> <Esc>/ :nohl<CR>:call clearmatches()<CR>
 nnoremap <S-Up> @:
 nnoremap <leader>j :%!python -m json.tool<CR>:set ft=json<CR>
 nnoremap <F7> :botright terminal<CR>
@@ -103,9 +105,8 @@ nnoremap <silent> <M-f> :cnewer<CR>
 nnoremap <silent> <M-b> :colder<CR>
 
 " search with grep
-:command! -nargs=0 SearchForWord <mods> silent :grep --binary-files=without-match -ir "<cword>" .
-nmap <silent> <leader>* :SearchForWord<CR>
-nmap <space>f :grep -ir '' --include='*' .
+nmap <leader>* :grep --include='*.<C-R>=expand('%:e')<CR>' -ir "<C-R><C-W>" <C-R>%
+nmap <space>f :grep --include='*' -ir '' .
 
 
 " fugitive plugin
@@ -136,12 +137,24 @@ else
     let g:coc_start_at_startup=0
 endif
 
+" Use <TAB> to trigger completion.
+inoremap <silent><expr> <TAB>
+      \ coc#pum#visible() ? coc#pum#next(1) :
+      \ CheckBackspace() ? "\<Tab>" :
+      \ coc#refresh()
+inoremap <expr><S-TAB> coc#pum#visible() ? coc#pum#prev(1) : "\<C-h>"
+
+function! CheckBackspace() abort
+  let col = col('.') - 1
+  return !col || getline('.')[col - 1]  =~# '\s'
+endfunction
+
 " Use <c-space> to trigger completion.
-inoremap <silent><expr> <C-@> coc#refresh()
-inoremap <silent><expr> <C-Space> coc#refresh()
+"inoremap <silent><expr> <C-@> coc#refresh()
+"inoremap <silent><expr> <C-Space> coc#refresh()
 
 " Make <CR> to accept selected completion item or notify coc.nvim to format
-" " <C-g>u breaks current undo, please make your own choice.
+" <C-g>u breaks current undo, please make your own choice.
 inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm()
                               \: "\<C-g>u\<CR>\<c-r>=coc#on_enter()\<CR>"
 
@@ -289,6 +302,8 @@ nnoremap <S-F7> :botright call term_start("bash", {"term_finish":"close","cwd":g
 " Vimspector plugin
 let g:vimspector_install_gadgets = [ 'debugpy', 'vscode-java-debug' ]
 let g:vimspector_enable_mappings = 'HUMAN'
+" VimspectorPause causes debugger freeze when use remote debug. Disable shortcut
+silent! unmap <F6>
 
 " mnemonic 'di' = 'debug inspect' (pick your own, if you prefer!)
 " for normal mode - the word under the cursor
@@ -371,7 +386,6 @@ function! SetProjectRootAndJavaRunner(file)
                 return
             endif
 		endfor
-        let g:coc_project_root = fnamemodify(a:file, ':h')
 	endif
 endfunction
 augroup misc
