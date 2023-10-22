@@ -43,7 +43,7 @@ if has("gui_running")
     nnoremap <C-S-W> :tabclose<CR>
 endif
 
-highlight Pmenu ctermbg=3 guibg=DarkYellow
+"highlight Pmenu ctermbg=3 guibg=DarkYellow
 
 set undodir=~/.vim/undo
 set undofile
@@ -105,8 +105,9 @@ nnoremap <silent> <M-f> :cnewer<CR>
 nnoremap <silent> <M-b> :colder<CR>
 
 " search with grep
-nmap <leader>* :grep --include='*.<C-R>=expand('%:e')<CR>' -ir "<C-R><C-W>" <C-R>%
-nmap <space>f :grep --include='*' -ir '' .
+nnoremap <leader>* :grep --include='*<C-R>=expand('%:e')<CR>' -ir "<C-R><C-W>" <C-R>%
+vnoremap <leader>* :normal gv"fy<CR>:grep --include='*<C-R>=expand('%:e')<CR>' -ir "<C-R>=getreg("f")<CR>" <C-R>%
+nnoremap <space>f :grep --include='*' -ir '' .
 
 
 " fugitive plugin
@@ -405,8 +406,9 @@ nnoremap <silent> <leader>c :call CopyFullFilePath()<CR>
 function! CopyJavaQualifiedClassName()
     let doc = CocAction('getHover')
     if get(doc, 0, '') != ''
-        let @+ = doc[0]
-        echo doc[0]
+        let res = substitute(substitute(doc[0],'(.*','',''),'.\{-} ','','')
+        let @+ = res
+        echo res
     endif
 endfunction
 nnoremap <silent> <leader>qc :call CopyJavaQualifiedClassName()<CR>
