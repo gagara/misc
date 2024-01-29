@@ -3,8 +3,9 @@
 call plug#begin()
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-rhubarb'
+Plug 'tpope/vim-commentary'
 Plug 'ctrlpvim/ctrlp.vim'
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'neoclide/coc.nvim', {'branch': 'master', 'do': 'npm ci'}
 Plug 'puremourning/vimspector'
 Plug 'vim-test/vim-test'
 Plug 'itchyny/lightline.vim'
@@ -29,8 +30,9 @@ set autoread
 set signcolumn=yes
 set cmdheight=2
 set guitablabel=%{exists('t:label')?t:label\ :''}
-
-let g:zip_nomax=1
+set noswapfile
+set undodir=~/.vim/undo
+set undofile
 
 "colorscheme default
 if has("gui_running")
@@ -45,20 +47,22 @@ endif
 
 "highlight Pmenu ctermbg=3 guibg=DarkYellow
 
-set undodir=~/.vim/undo
-set undofile
-
+let g:zip_nomax=1
 let mapleader="\\"
 
 nnoremap <leader>l :set list!<CR>
 nnoremap <leader>n :set number!<CR>
+nnoremap <leader>sb :set scrollbind!<CR>
 nnoremap <silent> <space><space> :call matchadd("IncSearch", expand('<cword>'))<CR>
 nnoremap <silent> <Esc>/ :nohl<CR>:call clearmatches()<CR>
 nnoremap <S-Up> @:
 nnoremap <leader>j :%!python -m json.tool<CR>:set ft=json<CR>
 nnoremap <F7> :botright terminal<CR>
+nnoremap <S-F7> :botright call term_start("bash", {"term_finish":"close","cwd":g:coc_project_root})<CR>
 nnoremap <silent> cd :exec 'cd ' . coc_project_root<CR>
 nnoremap gp `[v`]
+nnoremap <C-_> <C-W>1_<C-W>p
+tnoremap <C-_> <C-W>1_<C-W>p
 
 " omni completion
 set completeopt=longest,menuone
@@ -105,10 +109,14 @@ nnoremap <silent> <M-f> :cnewer<CR>
 nnoremap <silent> <M-b> :colder<CR>
 
 " search with grep
-nnoremap <leader>* :grep --include='*<C-R>=expand('%:e')<CR>' -ir "<C-R><C-W>" <C-R>%
-vnoremap <leader>* :normal gv"fy<CR>:grep --include='*<C-R>=expand('%:e')<CR>' -ir "<C-R>=getreg("f")<CR>" <C-R>%
-nnoremap <space>f :grep --include='*' -ir '' .
+nnoremap <leader>* :grep -Iir --exclude-dir={.*,bin,build} --include={*<C-R>=expand('%:e')<CR>,} "<C-R><C-W>" <C-R>%
+vnoremap <leader>* :normal gv"fy<CR>:grep -Iir --exclude-dir={.*,bin,build} --include={*<C-R>=expand('%:e')<CR>,} "<C-R>=getreg("f")<CR>" <C-R>%
+nnoremap <space>f :grep -Iir --exclude-dir={.*,bin,build} --include=* "" .
 
+" search, replace in current file
+vnoremap * v/<C-R>*<CR>
+vnoremap <leader>rr v:%s/<C-R>*/<C-R>*/gc
+nnoremap <leader>rr :%s/<C-R><C-w>/<C-R><C-w>/gc
 
 " fugitive plugin
 nmap gb :GBrowse <cfile><CR>
@@ -129,7 +137,7 @@ let g:vrc_auto_format_response_patterns = {
 
 
 " Coc plugin
-let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-pyright', 'coc-java', 'coc-java-vimspector']
+let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-pyright', 'coc-java', 'coc-java-vimspector', 'coc-sql']
 
 " enable for GUI only
 if has("gui_running")
@@ -297,25 +305,36 @@ nmap <silent> <leader>oi :CocCommand editor.action.organizeImport<CR>
 nnoremap <silent> <leader><F2> :CocCommand explorer<CR>
 nnoremap <silent> <leader>gs :call CocActionAsync('runCommand', 'explorer.doAction', 'closest', ['reveal:path:'.@+])<CR>
 
-nnoremap <S-F7> :botright call term_start("bash", {"term_finish":"close","cwd":g:coc_project_root})<CR>
-
 
 " Vimspector plugin
 let g:vimspector_install_gadgets = [ 'debugpy', 'vscode-java-debug' ]
-let g:vimspector_enable_mappings = 'HUMAN'
-" VimspectorPause causes debugger freeze when use remote debug. Disable shortcut
-silent! unmap <F6>
 
-" mnemonic 'di' = 'debug inspect' (pick your own, if you prefer!)
-" for normal mode - the word under the cursor
-nmap <Leader>di <Plug>VimspectorBalloonEval
-" for visual mode, the visually selected text
-xmap <Leader>di <Plug>VimspectorBalloonEval
+"let g:vimspector_enable_mappings = 'HUMAN'
+nmap <F3>    <Plug>VimspectorStop
+nmap <S-F3>  :VimspectorReset<CR>
+nmap <F4>    <Plug>VimspectorContinue
+nmap <S-F4>  <Plug>VimspectorLaunch
+nmap <F9>    <Plug>VimspectorToggleBreakpoint
+nmap <S-F9>  <Plug>VimspectorToggleConditionalBreakpoint
+nmap <F10>   <Plug>VimspectorStepOver
+nmap <S-F10> <Plug>VimspectorRunToCursor
+nmap <F11>   <Plug>VimspectorStepInto
+nmap <S-F11> <Plug>VimspectorUpFrame
+nmap <F12>   <Plug>VimspectorStepOut
+nmap <S-F12> <Plug>VimspectorDownFrame
 
-nmap <Leader><F11> <Plug>VimspectorUpFrame
-nmap <Leader><F12> <Plug>VimspectorDownFrame
-nmap <Leader><F3> :VimspectorReset<CR>
+nmap <C-CR> <Plug>VimspectorBalloonEval
+xmap <C-CR> <Plug>VimspectorBalloonEval
+
 nmap <Leader>B <Plug>VimspectorBreakpoints
+
+" increase priority to overlay CoC signs
+let g:vimspector_sign_priority = {
+  \    'vimspectorBP':         33,
+  \    'vimspectorBPCond':     32,
+  \    'vimspectorBPDisabled': 31,
+  \    'vimspectorPC':         999,
+  \ }
 
 " Java Remote debug
 command! -nargs=0 JavaStartDebugAdapter :call _JavaStartDebugAdapter()
@@ -341,6 +360,11 @@ endfunction
 let test#strategy = "vimterminal"
 "let test#java#runner = 'gradletest'
 let g:test#runner_commands = ['GradleTest', 'MavenTest']
+let g:test#java#gradletest#options = {
+  \ 'nearest': '--rerun-tasks',
+  \ 'file':    '--rerun-tasks',
+  \ 'suite':   '',
+\}
 " Test Test
 nmap <leader>tt :TestNearest
 " Test File
