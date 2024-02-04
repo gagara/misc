@@ -58,7 +58,7 @@
             "remote-cmdLine": [],
             "configuration": {
                 "request": "attach",
-                "projectName": "${ProjectName:test}",
+                "projectName": "${ProjectName}",
                 "host": "127.0.0.1",
                 "port": "5005"
             },

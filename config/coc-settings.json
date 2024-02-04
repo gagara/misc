@@ -8,7 +8,9 @@
     "coc.preferences.extensionUpdateCheck": "never",
     "suggest.autoTrigger": "none",
     "diagnostic.warningSign": ">>",
-    "java.jdt.ls.java.home": "/opt/openjdk-bin-17",
+    "java.jdt.ls.java.home": "/opt/openjdk-bin-21",
+    "java.jdt.ls.directory": "/home/slg/opt/jdt.ls-1.30.1",
+    "java.import.gradle.java.home": "/opt/openjdk-bin-21",
     "java.configuration.runtimes": [
         {
             "name": "JavaSE-1.8",
@@ -22,6 +24,10 @@
             "name": "JavaSE-17",
             "path": "/opt/openjdk-bin-17",
             "default": true
+        },
+        {
+            "name": "JavaSE-21",
+            "path": "/opt/openjdk-bin-21",
         }
     ],
     "java.jdt.ls.lombokSupport.enabled": false,
@@ -52,6 +58,7 @@
         "org.mockito.Mockito.*",
         "org.mockito.ArgumentMatchers.*",
         "org.mockito.Answers.*",
+        "org.hamcrest.Matchers.*",
         "org.hamcrest.MatcherAssert.*",
         "org.hamcrest.CoreMatchers.*",
         "org.apache.commons.collections.CollectionUtils",
