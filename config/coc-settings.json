@@ -1,5 +1,5 @@
 {
-    "coc.preferences.rootPatterns": [
+    "workspace.rootPatterns": [
         ".git",
         ".hg",
         ".vim",
@@ -7,7 +7,8 @@
     ],
     "coc.preferences.extensionUpdateCheck": "never",
     "suggest.autoTrigger": "none",
-    "java.home": "/opt/openjdk-bin-17",
+    "diagnostic.warningSign": ">>",
+    "java.jdt.ls.java.home": "/opt/openjdk-bin-17",
     "java.configuration.runtimes": [
         {
             "name": "JavaSE-1.8",
@@ -23,9 +24,17 @@
             "default": true
         }
     ],
+    "java.jdt.ls.lombokSupport.enabled": false,
     "java.jdt.ls.vmargs": "-javaagent:/home/slg/opt/lombok.jar",
+    "java.import.gradle.annotationProcessing.enabled": false,
+    "java.compile.nullAnalysis.mode": "automatic",
     "java.debug.settings.showStaticVariables": true,
+    "java.inlayHints.parameterNames.enabled": "none",
+    "java.codeGeneration.useBlocks": true,
     "java.format.settings.url": "/home/slg/.config/coc/extensions/node_modules/coc-java/formatters/eclipse-formatter.xml",
+    "java.sources.organizeImports.starThreshold": 6,
+    "java.sources.organizeImports.staticStarThreshold": 6,
+    "java.completion.guessMethodArguments": true,
     "java.completion.importOrder": [
         "java",
         "javax",
@@ -33,14 +42,34 @@
         "com",
         "io"
     ],
-    "java.completion.overwrite": false,
-    "java.completion.guessMethodArguments": true,
-    "java.sources.organizeImports.starThreshold": 6,
-    "java.sources.organizeImports.staticStarThreshold": 6,
+    "java.completion.favoriteStaticMembers": [
+        "org.junit.Assert.*",
+        "org.junit.Assume.*",
+        "org.junit.jupiter.api.Assertions.*",
+        "org.junit.jupiter.api.Assumptions.*",
+        "org.junit.jupiter.api.DynamicContainer.*",
+        "org.junit.jupiter.api.DynamicTest.*",
+        "org.mockito.Mockito.*",
+        "org.mockito.ArgumentMatchers.*",
+        "org.mockito.Answers.*",
+        "org.hamcrest.MatcherAssert.*",
+        "org.hamcrest.CoreMatchers.*",
+        "org.apache.commons.collections.CollectionUtils",
+        "org.apache.commons.lang3.ArrayUtils"
+    ],
     "explorer.keyMappings.global": {
-        "<S-Left>": ["wait", "collapse"],
-        "<S-Right>": ["wait", "expandable?", "expand", "open"]
+        "<S-Left>": [
+            "wait",
+            "collapse"
+        ],
+        "<S-Right>": [
+            "wait",
+            "expandable?",
+            "expand",
+            "open"
+        ]
     },
-    "pyright.inlayHints.enable": false,
-    "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/15.0.1/clangd_15.0.1/bin/clangd"
+    "pyright.inlayHints.functionReturnTypes": false,
+    "pyright.inlayHints.variableTypes": false,
+    "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/17.0.3/clangd_17.0.3/bin/clangd"
 }
