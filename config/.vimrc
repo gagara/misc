@@ -437,22 +437,24 @@ function! CopyJavaQualifiedClassName()
 endfunction
 nnoremap <silent> <leader>qc :call CopyJavaQualifiedClassName()<CR>
 
-function! _JavaGradleDependencies(module, ...)
-    let cfg = get(a:, 1, "compileClasspath")
-    let bufname = ":".a:module.":".cfg.":dependencies"
-    execute "silent! bd! ".bufname
-    call term_start(["./gradlew", "-q", a:module.":dependencies", "--configuration", cfg],{"cwd":g:coc_project_root, "term_name":bufname})
-endfunction
-" args: [module] | [module configuration]. Default configuration 'compileClasspath'
-command! -nargs=+ JavaGradleDependencies :call _JavaGradleDependencies(<f-args>)
-
-function! _JavaGradleDependencyInsight(module, dependency, ...)
+function! _JavaGradleDependencies(...)
+    let module = get(a:, 1, "")
     let cfg = get(a:, 2, "compileClasspath")
-    let bufname = ":".a:module.":".cfg.":".a:dependency.":dependencyInsight"
+    let bufname = "".module.":".cfg.":dependencies"
     execute "silent! bd! ".bufname
-    call term_start(["./gradlew", "-q", a:module.":dependencyInsight", "--configuration", cfg, "--dependency", a:dependency],{"cwd":g:coc_project_root, "term_name":bufname})
+    call term_start(["./gradlew", "-q", module.":dependencies", "--configuration", cfg],{"cwd":g:coc_project_root, "term_name":bufname})
 endfunction
-" args: [module dependency] | [module dependency configuration]. Default configuration 'compileClasspath'
+" args: [] | [module] | [module configuration]. Default configuration 'compileClasspath'
+command! -nargs=* JavaGradleDependencies :call _JavaGradleDependencies(<f-args>)
+
+function! _JavaGradleDependencyInsight(dependency, ...)
+    let module = get(a:, 1, "")
+    let cfg = get(a:, 2, "compileClasspath")
+    let bufname = module.":".cfg.":".a:dependency.":dependencyInsight"
+    execute "silent! bd! ".bufname
+    call term_start(["./gradlew", "-q", module.":dependencyInsight", "--configuration", cfg, "--dependency", a:dependency],{"cwd":g:coc_project_root, "term_name":bufname})
+endfunction
+" args: [dependency] | [dependency module] | [dependency module configuration]. Default configuration 'compileClasspath'
 command! -nargs=+ JavaGradleDependencyInsight :call _JavaGradleDependencyInsight(<f-args>)
 
 function VrcHandleResponse()
