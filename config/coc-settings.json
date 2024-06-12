@@ -8,7 +8,7 @@
     "coc.preferences.extensionUpdateCheck": "never",
     "suggest.autoTrigger": "none",
     "diagnostic.warningSign": ">>",
-    "java.jdt.ls.directory": "/home/vgagara/opt/jdt.ls-1.31.0",
+    "java.jdt.ls.directory": "/home/vgagara/opt/jdt.ls-1.36.0",
     "java.jdt.ls.java.home": "/usr/lib/jvm/java-21-openjdk",
     "java.import.gradle.java.home": "/usr/lib/jvm/java-21-openjdk",
     "java.configuration.runtimes": [
@@ -45,7 +45,8 @@
         "javax",
         "org",
         "com",
-        "io"
+        "io",
+        "*"
     ],
     "java.completion.favoriteStaticMembers": [
         "org.junit.Assert.*",

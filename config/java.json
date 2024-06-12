@@ -20,29 +20,7 @@
                 }
             }
         },
-        "Java Run Local": {
-            "adapter": {
-                "extends": "vscode-java",
-                "launch": {
-                    "remote": {
-                        "runCommand": [
-                            "*${DebuggeeCommand}"
-                        ]
-                    }
-                }
-            },
-            "remote-request": "launch",
-            "remote-cmdLine": [],
-            "configuration": {
-            },
-            "breakpoints": {
-                "exception": {
-                    "caught": "N",
-                    "uncaught": "N"
-                }
-            }
-        },
-        "Java Run and Attach": {
+        "Java Run/Attach": {
             "adapter": {
                 "extends": "vscode-java",
                 "launch": {
@@ -60,7 +38,7 @@
                 "request": "attach",
                 "projectName": "${ProjectName}",
                 "host": "127.0.0.1",
-                "port": "5005"
+                "port": "${DebugPort:5005}"
             },
             "breakpoints": {
                 "exception": {

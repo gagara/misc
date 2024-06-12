@@ -10,6 +10,8 @@ Plug 'puremourning/vimspector'
 Plug 'vim-test/vim-test'
 Plug 'itchyny/lightline.vim'
 Plug 'diepm/vim-rest-console'
+Plug 'github/copilot.vim'
+Plug 'madox2/vim-ai'
 call plug#end()
 " end of vim-plug
 
@@ -45,6 +47,9 @@ if has("gui_running")
     nnoremap <C-S-W> :tabclose<CR>
 endif
 
+" copilot
+let g:copilot_enabled = 0
+
 "highlight Pmenu ctermbg=3 guibg=DarkYellow
 
 let g:zip_nomax=1
@@ -65,9 +70,9 @@ nnoremap <C-_> <C-W>1_<C-W>p
 tnoremap <C-_> <C-W>1_<C-W>p
 
 " omni completion
-set completeopt=longest,menuone
-inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
-inoremap <expr> <C-n> pumvisible() ? '<C-n>' : \ '<C-n><C-r>=pumvisible() ? "\<lt>Down>" : ""<CR>'
+" set completeopt=longest,menuone
+" inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+" inoremap <expr> <C-n> pumvisible() ? '<C-n>' : \ '<C-n><C-r>=pumvisible() ? "\<lt>Down>" : ""<CR>'
 
 " tab navigation: Alt+1, Alt+2, Alt+3,...
 nnoremap <M-1> 1gt
@@ -289,10 +294,6 @@ nmap <leader>pu :CocCommand java.projectConfiguration.update<CR>
 nmap <leader>pc :CocCommand java.project.build<CR>
 " Project-Import
 nmap <leader>pi :CocCommand java.project.import.command<CR>
-" Diagnostics list no-quit
-nmap <leader>ld :CocList --strict --ignore-case --no-quit diagnostics<CR>
-" Location list no-quit
-nmap <leader>ll :CocList --normal --no-quit location<CR>
 " Show-Incoming calls (tree view)
 nmap <silent> <leader>si :call CocAction('showIncomingCalls')<CR>
 " Show-Outgoing calls (tree view)
@@ -375,13 +376,14 @@ nmap <leader>ts :TestSuite
 nmap <leader>tl :TestLast
 
 function! VimspectorJavaStrategy(cmd)
-    if g:test#java#runner == 'gradletest' | let dbg_cmd = a:cmd . ' --debug-jvm' | endif
-    if g:test#java#runner == 'maventest' | let dbg_cmd = a:cmd . ' -Dmaven.surefire.debug' | endif
-    if exists("dbg_cmd")
-        let cfg = { 'configuration': 'Java Run and Attach', 'DebuggeeCommand': dbg_cmd }
-        if !empty($DAPPort) | let cfg.DAPPort = $DAPPort | endif
-        call vimspector#LaunchWithSettings(cfg)
+    let cfg = { 'configuration': 'Java Run/Attach', 'DebugPort': 5005 }
+    if exists("g:test#java#runner")
+        if g:test#java#runner == 'gradletest' | let dbg_cmd = a:cmd . ' --debug-jvm' | endif
+        if g:test#java#runner == 'maventest' | let dbg_cmd = a:cmd . ' -Dmaven.surefire.debug' | endif
     endif
+    if exists("dbg_cmd") | let cfg.DebuggeeCommand = dbg_cmd | endif
+    if !empty($DAPPort) | let cfg.DAPPort = $DAPPort | endif
+    call vimspector#LaunchWithSettings(cfg)
 endfunction
 let g:test#custom_strategies = {'vimspector-java': function('VimspectorJavaStrategy')}
 
@@ -457,22 +459,24 @@ endfunction
 " args: [dependency] | [dependency module] | [dependency module configuration]. Default configuration 'compileClasspath'
 command! -nargs=+ JavaGradleDependencyInsight :call _JavaGradleDependencyInsight(<f-args>)
 
-function VrcHandleResponse()
-    if match(getline("."), '^##.*<<.\+') == -1 | return | endif
-    let cmd = map(split(getline("."), '##\|<<'), {k,v -> trim(v, ' ', 1)})
-    let output = getbufline(bufnr(get(g:, 'vrc_output_buffer_name', get(b:, 'vrc_output_buffer_name', '__REST_response__'))), 1, "$")
-    if len(output)
-        let repl = system(cmd[1], output)
-        if len(cmd[0])
-            call setline(1, map(getline(1, '$'), {k,v -> substitute(v, '^'.cmd[0].'.*', cmd[0].trim(repl), '')}))
-        else
-            call setqflist([], line('.') == a:firstline ? 'r' : 'a',
-            \    {'items': map(split(repl, '\n'), {k,v -> {'text':v, 'lnum':line('.')}})})
-            let currWin = winnr()
-            copen | execute currWin . 'wincmd w'
-        endif
-    endif
-endfunction
 autocmd FileType rest nnoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
 autocmd FileType rest inoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
 autocmd FileType rest vnoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
+
+function! _KubesealSecret(file, ...)
+    let scope = get(a:, 1, "namespace-wide")
+    let namespace = get(a:, 2, "platform-services")
+    let p = a:file
+    let cert = ""
+    while cert == "" && p != "/"
+        if filereadable(p."/pub-cert.pem") | let cert = p."/pub-cert.pem" | break | endif
+        let p = fnamemodify(p, ':h:p')
+    endwhile
+    if cert != ""
+        let ss = system("echo -n \"".@*."\" | ~/bin/kubeseal --raw --from-file=/dev/stdin --cert ".cert." --namespace ".namespace." --scope ".scope)
+        exec 'substitute/'.escape(@*, '/\').'/'.escape(ss, '/\').'/'
+    else
+        echoerr "Certificate file not found"
+    endif
+endfunction
+command! -nargs=* -range=% KubesealThis :call _KubesealSecret(expand('%'), <f-args>)
