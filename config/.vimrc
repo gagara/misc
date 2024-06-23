@@ -142,7 +142,12 @@ let g:vrc_auto_format_response_patterns = {
 
 
 " Coc plugin
-let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-pyright', 'coc-java', 'coc-java-vimspector', 'coc-sql']
+let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-pyright', 'coc-java', 'coc-java-debug', 'coc-tsserver', 'coc-sql', 'coc-webview', 'coc-markdown-preview-enhanced']
+" debug node
+" let g:coc_node_args = ['--nolazy', '--inspect=9229']
+" DEBUG for :CocOpenLog
+" let $NVIM_COC_LOG_LEVEL='debug'
+
 
 " enable for GUI only
 if has("gui_running")
@@ -308,7 +313,7 @@ nnoremap <silent> <leader>gs :call CocActionAsync('runCommand', 'explorer.doActi
 
 
 " Vimspector plugin
-let g:vimspector_install_gadgets = [ 'debugpy', 'vscode-java-debug' ]
+let g:vimspector_install_gadgets = [ 'debugpy', 'vscode-java-debug', 'vscode-js-debug' ]
 
 "let g:vimspector_enable_mappings = 'HUMAN'
 nmap <F3>    <Plug>VimspectorStop
@@ -341,9 +346,10 @@ let g:vimspector_sign_priority = {
 command! -nargs=0 JavaStartDebugAdapter :call _JavaStartDebugAdapter()
 function! _SetJavaDAPPortCallback(err, port)
     if !empty(a:port)
-        let $DAPPort = a:port
-        let @" = $DAPPort
+        let g:dap_port = a:port
+        let @" = a:port
         echo 'started java debug adapter on port ' . a:port
+        execute 'CocCommand java.debug.settings.update'
     endif
 endfunction
 function _JavaStartDebugAdapter()
@@ -353,7 +359,7 @@ endfunction
 command! -nargs=0 DebugJavaRemoteApp :call _JavaDebugRemoteApp()
 function! _JavaDebugRemoteApp()
     let cfg = { 'configuration': 'Java Attach' }
-    if !empty($DAPPort) | let cfg.DAPPort = $DAPPort | endif
+    if exists("g:dap_port") | let cfg.DAPPort = g:dap_port | endif
     call vimspector#LaunchWithSettings(cfg)
 endfunction
 
@@ -382,7 +388,7 @@ function! VimspectorJavaStrategy(cmd)
         if g:test#java#runner == 'maventest' | let dbg_cmd = a:cmd . ' -Dmaven.surefire.debug' | endif
     endif
     if exists("dbg_cmd") | let cfg.DebuggeeCommand = dbg_cmd | endif
-    if !empty($DAPPort) | let cfg.DAPPort = $DAPPort | endif
+    if exists("g:dap_port") | let cfg.DAPPort = g:dap_port | endif
     call vimspector#LaunchWithSettings(cfg)
 endfunction
 let g:test#custom_strategies = {'vimspector-java': function('VimspectorJavaStrategy')}

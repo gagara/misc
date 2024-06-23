@@ -6,7 +6,7 @@
                 "sync_timeout": 90000,
                 "async_timeout": 90000
             },
-            "default": true,
+            "filetypes": [ "java" ],
             "configuration": {
                 "request": "attach",
                 "projectName": "${ProjectName}",
@@ -32,6 +32,7 @@
                     "delay": "${DebuggeeStartDelay:5}"
                 }
             },
+            "filetypes": [ "java" ],
             "remote-request": "launch",
             "remote-cmdLine": [],
             "configuration": {

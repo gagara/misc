@@ -31,6 +31,7 @@
     ],
     "java.jdt.ls.lombokSupport.enabled": false,
     "java.jdt.ls.vmargs": "-javaagent:/home/vgagara/opt/lombok.jar",
+    "java.configuration.updateBuildConfiguration": "automatic",
     "java.import.gradle.annotationProcessing.enabled": false,
     "java.compile.nullAnalysis.mode": "automatic",
     "java.debug.settings.showStaticVariables": true,
