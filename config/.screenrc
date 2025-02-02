@@ -1,3 +1,3 @@
-caption always "%{+b Gk}%S%{wk} | %?%-Lw%?%{bw}%n*%f %t%?(%u)%?%{wk}%?%+Lw%? %=| %{gk}%H"
+caption always '%{+b 0;7}%S%{0;7} | %?%-Lw%?%{b7;4}(%f)%n %t%?(%u)%?%{0;7}%?%+Lw%? %=| %{0;7}%H'
 defscrollback 10000
-#shelltitle '$ |bash:'
+shelltitle '$|bash: '

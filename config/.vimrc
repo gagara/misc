@@ -9,7 +9,7 @@ Plug 'neoclide/coc.nvim', {'branch': 'master', 'do': 'npm ci'}
 Plug 'puremourning/vimspector'
 Plug 'vim-test/vim-test'
 Plug 'itchyny/lightline.vim'
-Plug 'diepm/vim-rest-console'
+Plug 'gagara/vim-rest-console'
 Plug 'github/copilot.vim'
 Plug 'madox2/vim-ai'
 call plug#end()
@@ -120,8 +120,8 @@ nnoremap <space>f :grep -Iir --exclude-dir={.*,bin,build} --include=* "" .
 
 " search, replace in current file
 vnoremap * v/<C-R>*<CR>
-vnoremap <leader>rr v:%s/<C-R>*/<C-R>*/gc
-nnoremap <leader>rr :%s/<C-R><C-w>/<C-R><C-w>/gc
+vnoremap <leader>rr :s/<C-R>+/<C-R>+/gc
+nnoremap <leader>rr :%s/<C-R>+/<C-R>+/gc
 
 " fugitive plugin
 nmap gb :GBrowse <cfile><CR>
@@ -142,7 +142,7 @@ let g:vrc_auto_format_response_patterns = {
 
 
 " Coc plugin
-let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-pyright', 'coc-java', 'coc-java-debug', 'coc-tsserver', 'coc-sql', 'coc-webview', 'coc-markdown-preview-enhanced']
+let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-xml', 'coc-pyright', 'coc-java', 'coc-java-debug', 'coc-tsserver', 'coc-sql', 'coc-webview', 'coc-markdown-preview-enhanced']
 " debug node
 " let g:coc_node_args = ['--nolazy', '--inspect=9229']
 " DEBUG for :CocOpenLog
@@ -194,8 +194,12 @@ nmap <silent> gr <Plug>(coc-references)
 nmap <silent> <leader>gd :<C-U>call CocActionAsync('jumpDefinition', v:false)<CR>
 nmap <silent> <leader>gi :<C-U>call CocActionAsync('jumpImplementation', v:false)<CR>
 nmap <silent> <leader>gr :<C-U>call CocActionAsync('jumpReferences', v:false)<CR>
-" Java type hierarchy
-nmap <silent> <leader>gh :CocCommand java.action.showTypeHierarchy<CR>
+" Show-Super types hierarchy (tree view)
+nmap <silent> gH :call CocAction('showSuperTypes')<CR>
+" Show-Sub types hierarchy (tree view)
+nmap <silent> gh :call CocAction('showSubTypes')<CR>
+" Show type hierarchy for java (tree view)
+nmap <silent> gjh :CocCommand java.action.showTypeHierarchy<CR>
 
 " Use K to show documentation in preview window.
 nnoremap <silent> K :call ShowDocumentation()<CR>
@@ -318,8 +322,9 @@ let g:vimspector_install_gadgets = [ 'debugpy', 'vscode-java-debug', 'vscode-js-
 "let g:vimspector_enable_mappings = 'HUMAN'
 nmap <F3>    <Plug>VimspectorStop
 nmap <S-F3>  :VimspectorReset<CR>
-nmap <F4>    <Plug>VimspectorContinue
+nmap <F4>    <Plug>VimspectorRestart
 nmap <S-F4>  <Plug>VimspectorLaunch
+nmap <F5>    <Plug>VimspectorContinue
 nmap <F9>    <Plug>VimspectorToggleBreakpoint
 nmap <S-F9>  <Plug>VimspectorToggleConditionalBreakpoint
 nmap <F10>   <Plug>VimspectorStepOver
@@ -465,6 +470,18 @@ endfunction
 " args: [dependency] | [dependency module] | [dependency module configuration]. Default configuration 'compileClasspath'
 command! -nargs=+ JavaGradleDependencyInsight :call _JavaGradleDependencyInsight(<f-args>)
 
+function! _JavaMavenDependencies(...)
+    let module = get(a:, 1, "")
+    let includes = get(a:, 2, "*")
+    let scope = get(a:, 3, "compile")
+    let bufname = "".module.":".scope.":dependencies:".includes
+    if !empty(module) | let module = " --projects=:".module | endif
+    execute "silent! bd! ".bufname
+    call term_start("mvn".module." dependency:tree"." -Dincludes=".includes." -Dscope=".scope." -Dverbose", {"cwd":g:coc_project_root, "term_name":bufname})
+endfunction
+" args: [] | [module] | [module filter] | [module filter scope]. Defaults: filter=* scope='compile'
+command! -nargs=* JavaMavenDependencies :call _JavaMavenDependencies(<f-args>)
+
 autocmd FileType rest nnoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
 autocmd FileType rest inoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
 autocmd FileType rest vnoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
@@ -476,6 +493,7 @@ function! _KubesealSecret(file, ...)
     let cert = ""
     while cert == "" && p != "/"
         if filereadable(p."/pub-cert.pem") | let cert = p."/pub-cert.pem" | break | endif
+        if filereadable(p."/utils/sealed-secrets/secret.crt") | let cert = p."/utils/sealed-secrets/secret.crt" | break | endif
         let p = fnamemodify(p, ':h:p')
     endwhile
     if cert != ""
@@ -486,3 +504,6 @@ function! _KubesealSecret(file, ...)
     endif
 endfunction
 command! -nargs=* -range=% KubesealThis :call _KubesealSecret(expand('%'), <f-args>)
+
+"command! -nargs=+ GrepProject execute 'grep '.split(<f-args>,' ')[0]
+"nnoremap <space>f :grep -Iir --exclude-dir={.*,bin,build} --include=* "" .
