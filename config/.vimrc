@@ -39,7 +39,7 @@ set undofile
 "colorscheme default
 if has("gui_running")
 	colorscheme evening
-	set guifont=Liberation\ Mono\ 14
+	set guifont=Liberation\ Mono\ 11
 	set guioptions -=T
 	set guioptions -=m
 	set guioptions +=c
@@ -114,9 +114,13 @@ nnoremap <silent> <M-f> :cnewer<CR>
 nnoremap <silent> <M-b> :colder<CR>
 
 " search with grep
-nnoremap <leader>* :grep -Iir --exclude-dir={.*,bin,build} --include={*<C-R>=expand('%:e')<CR>,} "<C-R><C-W>" <C-R>%
-vnoremap <leader>* :normal gv"fy<CR>:grep -Iir --exclude-dir={.*,bin,build} --include={*<C-R>=expand('%:e')<CR>,} "<C-R>=getreg("f")<CR>" <C-R>%
-nnoremap <space>f :grep -Iir --exclude-dir={.*,bin,build} --include=* "" .
+command! -nargs=+ GrepWorkspace :call feedkeys(
+            \ ":grep -Iir --exclude-dir={.*,bin,build} --include={,".
+            \ split(<q-args>, ' ')[0]."} \"".
+            \ escape(join(split(<q-args>, ' ')[1:]), '"')."\" ".
+            \ get(g:, 'coc_project_root', expand('%')))
+nnoremap <leader>* :GrepWorkspace * 
+vnoremap <leader>* :normal gv"fy<CR>:GrepWorkspace * <C-R>=getreg("f")<CR>
 
 " search, replace in current file
 vnoremap * v/<C-R>*<CR>
@@ -504,6 +508,3 @@ function! _KubesealSecret(file, ...)
     endif
 endfunction
 command! -nargs=* -range=% KubesealThis :call _KubesealSecret(expand('%'), <f-args>)
-
-"command! -nargs=+ GrepProject execute 'grep '.split(<f-args>,' ')[0]
-"nnoremap <space>f :grep -Iir --exclude-dir={.*,bin,build} --include=* "" .
