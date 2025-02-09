@@ -1,0 +1,23 @@
+{
+    "configurations": {
+        "JS Attach": {
+            "adapter": {
+                "extends": "js-debug"
+            },
+            "filetypes": [ "javascript", "typescript" ],
+            "configuration": {
+                "cwd": "${workspaceRoot}",
+                "request": "attach",
+                "projectName": "${ProjectName}",
+                "host": "127.0.0.1",
+                "port": "${DebugPort:9229}"
+            },
+            "breakpoints": {
+                "exception": {
+                    "caught": "N",
+                    "uncaught": "N"
+                }
+            }
+        }
+    }
+}

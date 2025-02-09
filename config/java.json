@@ -6,7 +6,7 @@
                 "sync_timeout": 90000,
                 "async_timeout": 90000
             },
-            "default": true,
+            "filetypes": [ "java" ],
             "configuration": {
                 "request": "attach",
                 "projectName": "${ProjectName}",
@@ -20,29 +20,7 @@
                 }
             }
         },
-        "Java Run Local": {
-            "adapter": {
-                "extends": "vscode-java",
-                "launch": {
-                    "remote": {
-                        "runCommand": [
-                            "*${DebuggeeCommand}"
-                        ]
-                    }
-                }
-            },
-            "remote-request": "launch",
-            "remote-cmdLine": [],
-            "configuration": {
-            },
-            "breakpoints": {
-                "exception": {
-                    "caught": "N",
-                    "uncaught": "N"
-                }
-            }
-        },
-        "Java Run and Attach": {
+        "Java Run/Attach": {
             "adapter": {
                 "extends": "vscode-java",
                 "launch": {
@@ -54,13 +32,14 @@
                     "delay": "${DebuggeeStartDelay:5}"
                 }
             },
+            "filetypes": [ "java" ],
             "remote-request": "launch",
             "remote-cmdLine": [],
             "configuration": {
                 "request": "attach",
                 "projectName": "${ProjectName}",
                 "host": "127.0.0.1",
-                "port": "5005"
+                "port": "${DebugPort:5005}"
             },
             "breakpoints": {
                 "exception": {

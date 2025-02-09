@@ -9,8 +9,9 @@ Plug 'neoclide/coc.nvim', {'branch': 'master', 'do': 'npm ci'}
 Plug 'puremourning/vimspector'
 Plug 'vim-test/vim-test'
 Plug 'itchyny/lightline.vim'
-Plug 'diepm/vim-rest-console'
+Plug 'gagara/vim-rest-console'
 Plug 'github/copilot.vim'
+Plug 'madox2/vim-ai'
 call plug#end()
 " end of vim-plug
 
@@ -46,6 +47,9 @@ if has("gui_running")
     nnoremap <C-S-W> :tabclose<CR>
 endif
 
+" copilot
+let g:copilot_enabled = 0
+
 "highlight Pmenu ctermbg=3 guibg=DarkYellow
 
 let g:zip_nomax=1
@@ -66,9 +70,9 @@ nnoremap <C-_> <C-W>1_<C-W>p
 tnoremap <C-_> <C-W>1_<C-W>p
 
 " omni completion
-set completeopt=longest,menuone
-inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
-inoremap <expr> <C-n> pumvisible() ? '<C-n>' : \ '<C-n><C-r>=pumvisible() ? "\<lt>Down>" : ""<CR>'
+" set completeopt=longest,menuone
+" inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+" inoremap <expr> <C-n> pumvisible() ? '<C-n>' : \ '<C-n><C-r>=pumvisible() ? "\<lt>Down>" : ""<CR>'
 
 " tab navigation: Alt+1, Alt+2, Alt+3,...
 nnoremap <M-1> 1gt
@@ -110,14 +114,18 @@ nnoremap <silent> <M-f> :cnewer<CR>
 nnoremap <silent> <M-b> :colder<CR>
 
 " search with grep
-nnoremap <leader>* :grep -Iir --exclude-dir={.*,bin,build} --include={*<C-R>=expand('%:e')<CR>,} "<C-R><C-W>" <C-R>%
-vnoremap <leader>* :normal gv"fy<CR>:grep -Iir --exclude-dir={.*,bin,build} --include={*<C-R>=expand('%:e')<CR>,} "<C-R>=getreg("f")<CR>" <C-R>%
-nnoremap <space>f :grep -Iir --exclude-dir={.*,bin,build} --include=* "" .
+command! -nargs=+ GrepWorkspace :call feedkeys(
+            \ ":grep -Iir --exclude-dir={.*,bin,build} --include={,".
+            \ split(<q-args>, ' ')[0]."} \"".
+            \ escape(join(split(<q-args>, ' ')[1:]), '"')."\" ".
+            \ get(g:, 'coc_project_root', expand('%')))
+nnoremap <leader>* :GrepWorkspace * 
+vnoremap <leader>* :normal gv"fy<CR>:GrepWorkspace * <C-R>=getreg("f")<CR>
 
 " search, replace in current file
 vnoremap * v/<C-R>*<CR>
-vnoremap <leader>rr v:%s/<C-R>*/<C-R>*/gc
-nnoremap <leader>rr :%s/<C-R><C-w>/<C-R><C-w>/gc
+vnoremap <leader>rr :s/<C-R>+/<C-R>+/gc
+nnoremap <leader>rr :%s/<C-R>+/<C-R>+/gc
 
 " fugitive plugin
 nmap gb :GBrowse <cfile><CR>
@@ -138,10 +146,14 @@ let g:vrc_auto_format_response_patterns = {
 
 
 " Coc plugin
-let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-pyright', 'coc-java', 'coc-java-vimspector', 'coc-sql']
+let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-xml', 'coc-pyright', 'coc-java', 'coc-java-debug', 'coc-tsserver', 'coc-sql', 'coc-webview', 'coc-markdown-preview-enhanced']
 let g:coc_filetype_map = {
     \ 'arduino': 'cpp'
     \ }
+" debug node
+" let g:coc_node_args = ['--nolazy', '--inspect=9229']
+" DEBUG for :CocOpenLog
+" let $NVIM_COC_LOG_LEVEL='debug'
 
 " enable for GUI only
 if has("gui_running")
@@ -188,8 +200,12 @@ nmap <silent> gr <Plug>(coc-references)
 nmap <silent> <leader>gd :<C-U>call CocActionAsync('jumpDefinition', v:false)<CR>
 nmap <silent> <leader>gi :<C-U>call CocActionAsync('jumpImplementation', v:false)<CR>
 nmap <silent> <leader>gr :<C-U>call CocActionAsync('jumpReferences', v:false)<CR>
-" Java type hierarchy
-nmap <silent> <leader>gh :CocCommand java.action.showTypeHierarchy<CR>
+" Show-Super types hierarchy (tree view)
+nmap <silent> gH :call CocAction('showSuperTypes')<CR>
+" Show-Sub types hierarchy (tree view)
+nmap <silent> gh :call CocAction('showSubTypes')<CR>
+" Show type hierarchy for java (tree view)
+nmap <silent> gjh :CocCommand java.action.showTypeHierarchy<CR>
 
 " Use K to show documentation in preview window.
 nnoremap <silent> K :call ShowDocumentation()<CR>
@@ -293,10 +309,6 @@ nmap <leader>pu :CocCommand java.projectConfiguration.update<CR>
 nmap <leader>pc :CocCommand java.project.build<CR>
 " Project-Import
 nmap <leader>pi :CocCommand java.project.import.command<CR>
-" Diagnostics list no-quit
-nmap <leader>ld :CocList --strict --ignore-case --no-quit diagnostics<CR>
-" Location list no-quit
-nmap <leader>ll :CocList --normal --no-quit location<CR>
 " Show-Incoming calls (tree view)
 nmap <silent> <leader>si :call CocAction('showIncomingCalls')<CR>
 " Show-Outgoing calls (tree view)
@@ -311,13 +323,14 @@ nnoremap <silent> <leader>gs :call CocActionAsync('runCommand', 'explorer.doActi
 
 
 " Vimspector plugin
-let g:vimspector_install_gadgets = [ 'debugpy', 'vscode-java-debug' ]
+let g:vimspector_install_gadgets = [ 'debugpy', 'vscode-java-debug', 'vscode-js-debug' ]
 
 "let g:vimspector_enable_mappings = 'HUMAN'
 nmap <F3>    <Plug>VimspectorStop
 nmap <S-F3>  :VimspectorReset<CR>
-nmap <F4>    <Plug>VimspectorContinue
+nmap <F4>    <Plug>VimspectorRestart
 nmap <S-F4>  <Plug>VimspectorLaunch
+nmap <F5>    <Plug>VimspectorContinue
 nmap <F9>    <Plug>VimspectorToggleBreakpoint
 nmap <S-F9>  <Plug>VimspectorToggleConditionalBreakpoint
 nmap <F10>   <Plug>VimspectorStepOver
@@ -344,9 +357,10 @@ let g:vimspector_sign_priority = {
 command! -nargs=0 JavaStartDebugAdapter :call _JavaStartDebugAdapter()
 function! _SetJavaDAPPortCallback(err, port)
     if !empty(a:port)
-        let $DAPPort = a:port
-        let @" = $DAPPort
+        let g:dap_port = a:port
+        let @" = a:port
         echo 'started java debug adapter on port ' . a:port
+        execute 'CocCommand java.debug.settings.update'
     endif
 endfunction
 function _JavaStartDebugAdapter()
@@ -356,7 +370,7 @@ endfunction
 command! -nargs=0 DebugJavaRemoteApp :call _JavaDebugRemoteApp()
 function! _JavaDebugRemoteApp()
     let cfg = { 'configuration': 'Java Attach' }
-    if !empty($DAPPort) | let cfg.DAPPort = $DAPPort | endif
+    if exists("g:dap_port") | let cfg.DAPPort = g:dap_port | endif
     call vimspector#LaunchWithSettings(cfg)
 endfunction
 
@@ -379,13 +393,14 @@ nmap <leader>ts :TestSuite
 nmap <leader>tl :TestLast
 
 function! VimspectorJavaStrategy(cmd)
-    if g:test#java#runner == 'gradletest' | let dbg_cmd = a:cmd . ' --debug-jvm' | endif
-    if g:test#java#runner == 'maventest' | let dbg_cmd = a:cmd . ' -Dmaven.surefire.debug' | endif
-    if exists("dbg_cmd")
-        let cfg = { 'configuration': 'Java Run and Attach', 'DebuggeeCommand': dbg_cmd }
-        if !empty($DAPPort) | let cfg.DAPPort = $DAPPort | endif
-        call vimspector#LaunchWithSettings(cfg)
+    let cfg = { 'configuration': 'Java Run/Attach', 'DebugPort': 5005 }
+    if exists("g:test#java#runner")
+        if g:test#java#runner == 'gradletest' | let dbg_cmd = a:cmd . ' --debug-jvm' | endif
+        if g:test#java#runner == 'maventest' | let dbg_cmd = a:cmd . ' -Dmaven.surefire.debug' | endif
     endif
+    if exists("dbg_cmd") | let cfg.DebuggeeCommand = dbg_cmd | endif
+    if exists("g:dap_port") | let cfg.DAPPort = g:dap_port | endif
+    call vimspector#LaunchWithSettings(cfg)
 endfunction
 let g:test#custom_strategies = {'vimspector-java': function('VimspectorJavaStrategy')}
 
@@ -441,40 +456,57 @@ function! CopyJavaQualifiedClassName()
 endfunction
 nnoremap <silent> <leader>qc :call CopyJavaQualifiedClassName()<CR>
 
-function! _JavaGradleDependencies(module, ...)
-    let cfg = get(a:, 1, "compileClasspath")
-    let bufname = ":".a:module.":".cfg.":dependencies"
-    execute "silent! bd! ".bufname
-    call term_start(["./gradlew", "-q", a:module.":dependencies", "--configuration", cfg],{"cwd":g:coc_project_root, "term_name":bufname})
-endfunction
-" args: [module] | [module configuration]. Default configuration 'compileClasspath'
-command! -nargs=+ JavaGradleDependencies :call _JavaGradleDependencies(<f-args>)
-
-function! _JavaGradleDependencyInsight(module, dependency, ...)
+function! _JavaGradleDependencies(...)
+    let module = get(a:, 1, "")
     let cfg = get(a:, 2, "compileClasspath")
-    let bufname = ":".a:module.":".cfg.":".a:dependency.":dependencyInsight"
+    let bufname = "".module.":".cfg.":dependencies"
     execute "silent! bd! ".bufname
-    call term_start(["./gradlew", "-q", a:module.":dependencyInsight", "--configuration", cfg, "--dependency", a:dependency],{"cwd":g:coc_project_root, "term_name":bufname})
+    call term_start(["./gradlew", "-q", module.":dependencies", "--configuration", cfg],{"cwd":g:coc_project_root, "term_name":bufname})
 endfunction
-" args: [module dependency] | [module dependency configuration]. Default configuration 'compileClasspath'
+" args: [] | [module] | [module configuration]. Default configuration 'compileClasspath'
+command! -nargs=* JavaGradleDependencies :call _JavaGradleDependencies(<f-args>)
+
+function! _JavaGradleDependencyInsight(dependency, ...)
+    let module = get(a:, 1, "")
+    let cfg = get(a:, 2, "compileClasspath")
+    let bufname = module.":".cfg.":".a:dependency.":dependencyInsight"
+    execute "silent! bd! ".bufname
+    call term_start(["./gradlew", "-q", module.":dependencyInsight", "--configuration", cfg, "--dependency", a:dependency],{"cwd":g:coc_project_root, "term_name":bufname})
+endfunction
+" args: [dependency] | [dependency module] | [dependency module configuration]. Default configuration 'compileClasspath'
 command! -nargs=+ JavaGradleDependencyInsight :call _JavaGradleDependencyInsight(<f-args>)
 
-function VrcHandleResponse()
-    if match(getline("."), '^##.*<<.\+') == -1 | return | endif
-    let cmd = map(split(getline("."), '##\|<<'), {k,v -> trim(v, ' ', 1)})
-    let output = getbufline(bufnr(get(g:, 'vrc_output_buffer_name', get(b:, 'vrc_output_buffer_name', '__REST_response__'))), 1, "$")
-    if len(output)
-        let repl = system(cmd[1], output)
-        if len(cmd[0])
-            call setline(1, map(getline(1, '$'), {k,v -> substitute(v, '^'.cmd[0].'.*', cmd[0].trim(repl), '')}))
-        else
-            call setqflist([], line('.') == a:firstline ? 'r' : 'a',
-            \    {'items': map(split(repl, '\n'), {k,v -> {'text':v, 'lnum':line('.')}})})
-            let currWin = winnr()
-            copen | execute currWin . 'wincmd w'
-        endif
-    endif
+function! _JavaMavenDependencies(...)
+    let module = get(a:, 1, "")
+    let includes = get(a:, 2, "*")
+    let scope = get(a:, 3, "compile")
+    let bufname = "".module.":".scope.":dependencies:".includes
+    if !empty(module) | let module = " --projects=:".module | endif
+    execute "silent! bd! ".bufname
+    call term_start("mvn".module." dependency:tree"." -Dincludes=".includes." -Dscope=".scope." -Dverbose", {"cwd":g:coc_project_root, "term_name":bufname})
 endfunction
+" args: [] | [module] | [module filter] | [module filter scope]. Defaults: filter=* scope='compile'
+command! -nargs=* JavaMavenDependencies :call _JavaMavenDependencies(<f-args>)
+
 autocmd FileType rest nnoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
 autocmd FileType rest inoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
 autocmd FileType rest vnoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
+
+function! _KubesealSecret(file, ...)
+    let scope = get(a:, 1, "namespace-wide")
+    let namespace = get(a:, 2, "platform-services")
+    let p = a:file
+    let cert = ""
+    while cert == "" && p != "/"
+        if filereadable(p."/pub-cert.pem") | let cert = p."/pub-cert.pem" | break | endif
+        if filereadable(p."/utils/sealed-secrets/secret.crt") | let cert = p."/utils/sealed-secrets/secret.crt" | break | endif
+        let p = fnamemodify(p, ':h:p')
+    endwhile
+    if cert != ""
+        let ss = system("echo -n \"".@*."\" | ~/bin/kubeseal --raw --from-file=/dev/stdin --cert ".cert." --namespace ".namespace." --scope ".scope)
+        exec 'substitute/'.escape(@*, '/\').'/'.escape(ss, '/\').'/'
+    else
+        echoerr "Certificate file not found"
+    endif
+endfunction
+command! -nargs=* -range=% KubesealThis :call _KubesealSecret(expand('%'), <f-args>)

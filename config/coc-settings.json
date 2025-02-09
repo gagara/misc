@@ -6,6 +6,9 @@
         ".projections.json"
     ],
     "coc.preferences.extensionUpdateCheck": "never",
+    "callHierarchy.splitCommand": "botright 10sp",
+    "callHierarchy.enableTooltip": false,
+    "typeHierarchy.splitCommand": "botright 10sp",
     "suggest.autoTrigger": "none",
     "diagnostic.warningSign": ">>",
     "java.jdt.ls.java.home": "/opt/openjdk-bin-21",
@@ -32,7 +35,9 @@
     ],
     "java.jdt.ls.lombokSupport.enabled": false,
     "java.jdt.ls.vmargs": "-javaagent:/home/slg/opt/lombok.jar",
+    "java.configuration.updateBuildConfiguration": "automatic",
     "java.import.gradle.annotationProcessing.enabled": false,
+    "java.maven.downloadSources": true,
     "java.compile.nullAnalysis.mode": "automatic",
     "java.contentProvider.preferred": "fernflower",
     "java.debug.settings.showStaticVariables": true,
@@ -47,7 +52,8 @@
         "javax",
         "org",
         "com",
-        "io"
+        "io",
+        "*"
     ],
     "java.completion.favoriteStaticMembers": [
         "org.junit.Assert.*",
@@ -77,7 +83,10 @@
             "open"
         ]
     },
+    "explorer.width": 33,
     "pyright.inlayHints.functionReturnTypes": false,
     "pyright.inlayHints.variableTypes": false,
     "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/17.0.3/clangd_17.0.3/bin/clangd"
+    "python.venvPath": "/home/slg/.virtualenvs/bigdata",
+    "java.trace.server": "verbose"
 }
