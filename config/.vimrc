@@ -10,6 +10,7 @@ Plug 'puremourning/vimspector'
 Plug 'vim-test/vim-test'
 Plug 'itchyny/lightline.vim'
 Plug 'diepm/vim-rest-console'
+Plug 'github/copilot.vim'
 call plug#end()
 " end of vim-plug
 
@@ -138,6 +139,9 @@ let g:vrc_auto_format_response_patterns = {
 
 " Coc plugin
 let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-pyright', 'coc-java', 'coc-java-vimspector', 'coc-sql']
+let g:coc_filetype_map = {
+    \ 'arduino': 'cpp'
+    \ }
 
 " enable for GUI only
 if has("gui_running")

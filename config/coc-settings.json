@@ -9,7 +9,7 @@
     "suggest.autoTrigger": "none",
     "diagnostic.warningSign": ">>",
     "java.jdt.ls.java.home": "/opt/openjdk-bin-21",
-    "java.jdt.ls.directory": "/home/slg/opt/jdt.ls-1.30.1",
+    "java.jdt.ls.directory": "/home/slg/opt/jdt.ls-1.31.0",
     "java.import.gradle.java.home": "/opt/openjdk-bin-21",
     "java.configuration.runtimes": [
         {
@@ -22,18 +22,19 @@
         },
         {
             "name": "JavaSE-17",
-            "path": "/opt/openjdk-bin-17",
-            "default": true
+            "path": "/opt/openjdk-bin-17"
         },
         {
             "name": "JavaSE-21",
             "path": "/opt/openjdk-bin-21",
+            "default": true
         }
     ],
     "java.jdt.ls.lombokSupport.enabled": false,
     "java.jdt.ls.vmargs": "-javaagent:/home/slg/opt/lombok.jar",
     "java.import.gradle.annotationProcessing.enabled": false,
     "java.compile.nullAnalysis.mode": "automatic",
+    "java.contentProvider.preferred": "fernflower",
     "java.debug.settings.showStaticVariables": true,
     "java.inlayHints.parameterNames.enabled": "none",
     "java.codeGeneration.useBlocks": true,
