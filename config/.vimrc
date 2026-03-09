@@ -12,6 +12,7 @@ Plug 'vim-test/vim-test'
 Plug 'itchyny/lightline.vim'
 Plug 'gagara/vim-rest-console'
 Plug 'github/copilot.vim'
+Plug 'DanBradbury/copilot-chat.vim'
 Plug 'madox2/vim-ai'
 call plug#end()
 " end of vim-plug
@@ -72,6 +73,7 @@ nnoremap <F7> :botright terminal<CR>
 nnoremap <S-F7> :botright call term_start("bash", {"term_finish":"close","cwd":g:coc_project_root})<CR>
 nnoremap <silent> cd :exec 'cd ' . coc_project_root<CR>
 nnoremap gp `[v`]
+nnoremap <silent> gz :let @+ = expand('<cfile>')<CR>
 nnoremap <C-_> <C-W>1_<C-W>p
 tnoremap <C-_> <C-W>1_<C-W>p
 
@@ -141,7 +143,7 @@ vnoremap <leader>rs :s/\t/    /g<CR>:nohl<CR>
 
 " fugitive plugin
 nmap gb :GBrowse <cfile><CR>
-let g:fugitive_gitlab_domains = ['https://*********.***********.com/gitlab']
+let g:fugitive_gitlab_domains = ['https://*************************/gitlab']
 
 " ctrlp plugin
 let g:ctrlp_working_path_mode = 'rc'
@@ -469,7 +471,7 @@ endfunction
 nnoremap <silent> <leader>qc :call CopyJavaQualifiedClassName()<CR>
 
 function! _JavaGradleDependencies(...)
-    let module = get(a:, 1, "")
+    let module = substitute(get(a:, 1, ""), ':', '', "")
     let cfg = get(a:, 2, "compileClasspath")
     let mod = get(a:, 3, "")
     let bufname = "".module.":".cfg.":dependencies".mod
@@ -525,3 +527,11 @@ function! _KubesealSecret(file, ...)
     endif
 endfunction
 command! -nargs=* -range=% KubesealThis :call _KubesealSecret(expand('%'), <f-args>)
+
+function _ExplorePath(...)
+    let path = get(a:, 1, getcwd())
+    let label = get(a:, 2, fnamemodify(substitute(path,"/$","",""), ':t'))
+    call CocActionAsync('runCommand', 'explorer', path)
+    let t:label = label
+endfunction
+command! -nargs=* -complete=file ExpPath :call _ExplorePath(<f-args>)
