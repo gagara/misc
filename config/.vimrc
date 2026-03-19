@@ -12,6 +12,7 @@ Plug 'itchyny/lightline.vim'
 Plug 'gagara/vim-rest-console'
 Plug 'github/copilot.vim'
 Plug 'madox2/vim-ai'
+Plug 'gyim/vim-boxdraw'
 call plug#end()
 " end of vim-plug
 
@@ -39,7 +40,7 @@ set undofile
 "colorscheme default
 if has("gui_running")
 	colorscheme evening
-	set guifont=Liberation\ Mono\ 11
+	set guifont=Liberation\ Mono\ 13
 	set guioptions -=T
 	set guioptions -=m
 	set guioptions +=c
@@ -146,7 +147,7 @@ let g:vrc_auto_format_response_patterns = {
 
 
 " Coc plugin
-let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-xml', 'coc-pyright', 'coc-java', 'coc-java-debug', 'coc-tsserver', 'coc-sql', 'coc-webview', 'coc-markdown-preview-enhanced']
+let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-xml', 'coc-pyright', 'coc-java', 'coc-java-debug', 'coc-tsserver', 'coc-clangd', 'coc-sql', 'coc-webview', 'coc-markdown-preview-enhanced']
 let g:coc_filetype_map = {
     \ 'arduino': 'cpp'
     \ }
@@ -510,3 +511,6 @@ function! _KubesealSecret(file, ...)
     endif
 endfunction
 command! -nargs=* -range=% KubesealThis :call _KubesealSecret(expand('%'), <f-args>)
+
+" search and replace with generated UUID
+" %s/pattern/\=substitute(system('uuidgen'), '\n', '', '')/gc 
