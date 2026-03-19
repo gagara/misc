@@ -31,6 +31,10 @@
             "name": "JavaSE-21",
             "path": "/opt/openjdk-bin-21",
             "default": true
+        },
+        {
+            "name": "JavaSE-25",
+            "path": "/opt/openjdk-bin-25",
         }
     ],
     "java.jdt.ls.lombokSupport.enabled": false,
@@ -84,6 +88,7 @@
         ]
     },
     "explorer.width": 33,
+    "explorer.icon.enableNerdfont": false,
     "pyright.inlayHints.functionReturnTypes": false,
     "pyright.inlayHints.variableTypes": false,
     "clangd.path": "~/.config/coc/extensions/coc-clangd-data/install/20.1.8/clangd_20.1.8/bin/clangd"

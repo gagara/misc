@@ -3,6 +3,7 @@
 call plug#begin()
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-rhubarb'
+Plug 'shumphrey/fugitive-gitlab.vim'
 Plug 'tpope/vim-commentary'
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'neoclide/coc.nvim', {'branch': 'master', 'do': 'npm ci'}
@@ -11,6 +12,7 @@ Plug 'vim-test/vim-test'
 Plug 'itchyny/lightline.vim'
 Plug 'gagara/vim-rest-console'
 Plug 'github/copilot.vim'
+"Plug 'DanBradbury/copilot-chat.vim'
 Plug 'madox2/vim-ai'
 Plug 'gyim/vim-boxdraw'
 call plug#end()
@@ -37,6 +39,9 @@ set noswapfile
 set undodir=~/.vim/undo
 set undofile
 
+"Fix gx and :GBrowse.
+let g:Openprg='setsid xdg-open'
+
 "colorscheme default
 if has("gui_running")
 	colorscheme evening
@@ -52,6 +57,7 @@ endif
 let g:copilot_enabled = 0
 
 "highlight Pmenu ctermbg=3 guibg=DarkYellow
+highlight Folded guibg=#4d4d4d guifg=#add8e6
 
 let g:zip_nomax=1
 let mapleader="\\"
@@ -59,6 +65,7 @@ let mapleader="\\"
 nnoremap <leader>l :set list!<CR>
 nnoremap <leader>n :set number!<CR>
 nnoremap <leader>sb :set scrollbind!<CR>
+nnoremap <leader>er :split ~/.vimrc<CR>
 nnoremap <silent> <space><space> :call matchadd("IncSearch", expand('<cword>'))<CR>
 nnoremap <silent> <Esc>/ :nohl<CR>:call clearmatches()<CR>
 nnoremap <S-Up> @:
@@ -67,6 +74,7 @@ nnoremap <F7> :botright terminal<CR>
 nnoremap <S-F7> :botright call term_start("bash", {"term_finish":"close","cwd":g:coc_project_root})<CR>
 nnoremap <silent> cd :exec 'cd ' . coc_project_root<CR>
 nnoremap gp `[v`]
+nnoremap <silent> gz :let @+ = expand('<cfile>')<CR>
 nnoremap <C-_> <C-W>1_<C-W>p
 tnoremap <C-_> <C-W>1_<C-W>p
 
@@ -125,11 +133,18 @@ vnoremap <leader>* :normal gv"fy<CR>:GrepWorkspace * <C-R>=getreg("f")<CR>
 
 " search, replace in current file
 vnoremap * v/<C-R>*<CR>
-vnoremap <leader>rr :s/<C-R>+/<C-R>+/gc
-nnoremap <leader>rr :%s/<C-R>+/<C-R>+/gc
+vnoremap <leader>rr :s/<C-R>//<C-R>//gc
+nnoremap <leader>rr :%s/<C-R>//<C-R>//gc
+vnoremap <leader>RR :s/<C-R>+/<C-R>+/gc
+nnoremap <leader>RR :%s/<C-R>+/<C-R>+/gc
+
+" replace <tab> <--> <space>
+vnoremap <leader>rt :s/    /\t/g<CR>:nohl<CR>
+vnoremap <leader>rs :s/\t/    /g<CR>:nohl<CR>
 
 " fugitive plugin
 nmap gb :GBrowse <cfile><CR>
+"let g:fugitive_gitlab_domains = ['https://*************************/gitlab']
 
 " ctrlp plugin
 let g:ctrlp_working_path_mode = 'rc'
@@ -147,7 +162,7 @@ let g:vrc_auto_format_response_patterns = {
 
 
 " Coc plugin
-let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-xml', 'coc-pyright', 'coc-java', 'coc-java-debug', 'coc-tsserver', 'coc-clangd', 'coc-sql', 'coc-webview', 'coc-markdown-preview-enhanced']
+let g:coc_global_extensions = ['coc-explorer', 'coc-json', 'coc-xml', 'coc-yaml', 'coc-pyright', 'coc-java', 'coc-java-debug', 'coc-tsserver', 'coc-clangd', 'coc-sql', 'coc-webview', 'coc-markdown-preview-enhanced']
 let g:coc_filetype_map = {
     \ 'arduino': 'cpp'
     \ }
@@ -220,6 +235,7 @@ function! ShowDocumentation()
 endfunction
 
 nmap <silent> <leader>h  :call CocActionAsync('highlight')<CR>
+nmap <silent> <leader>ws  :CocCommand java.show.server.task.status<CR>
 
 " Symbol renaming.
 nmap <leader>rn <Plug>(coc-rename)
@@ -458,35 +474,38 @@ endfunction
 nnoremap <silent> <leader>qc :call CopyJavaQualifiedClassName()<CR>
 
 function! _JavaGradleDependencies(...)
-    let module = get(a:, 1, "")
+    let module = substitute(get(a:, 1, ""), ':', '', "")
     let cfg = get(a:, 2, "compileClasspath")
-    let bufname = "".module.":".cfg.":dependencies"
+    let mod = get(a:, 3, "")
+    let bufname = "".module.":".cfg.":dependencies".mod
     execute "silent! bd! ".bufname
     call term_start(["./gradlew", "-q", module.":dependencies", "--configuration", cfg],{"cwd":g:coc_project_root, "term_name":bufname})
 endfunction
-" args: [] | [module] | [module configuration]. Default configuration 'compileClasspath'
+" args: [module] [configuration] [modifier]. Default configuration 'compileClasspath'
 command! -nargs=* JavaGradleDependencies :call _JavaGradleDependencies(<f-args>)
 
 function! _JavaGradleDependencyInsight(dependency, ...)
     let module = get(a:, 1, "")
     let cfg = get(a:, 2, "compileClasspath")
-    let bufname = module.":".cfg.":".a:dependency.":dependencyInsight"
+    let mod = get(a:, 3, "")
+    let bufname = module.":".cfg.":".a:dependency.":dependencyInsight".mod
     execute "silent! bd! ".bufname
     call term_start(["./gradlew", "-q", module.":dependencyInsight", "--configuration", cfg, "--dependency", a:dependency],{"cwd":g:coc_project_root, "term_name":bufname})
 endfunction
-" args: [dependency] | [dependency module] | [dependency module configuration]. Default configuration 'compileClasspath'
+" args: dependency [module] [configuration] [modifier]. Default configuration 'compileClasspath'
 command! -nargs=+ JavaGradleDependencyInsight :call _JavaGradleDependencyInsight(<f-args>)
 
 function! _JavaMavenDependencies(...)
     let module = get(a:, 1, "")
     let includes = get(a:, 2, "*")
     let scope = get(a:, 3, "compile")
-    let bufname = "".module.":".scope.":dependencies:".includes
+    let mod = get(a:, 4, "")
+    let bufname = "".module.":".scope.":dependencies:".includes.mod
     if !empty(module) | let module = " --projects=:".module | endif
     execute "silent! bd! ".bufname
     call term_start("mvn".module." dependency:tree"." -Dincludes=".includes." -Dscope=".scope." -Dverbose", {"cwd":g:coc_project_root, "term_name":bufname})
 endfunction
-" args: [] | [module] | [module filter] | [module filter scope]. Defaults: filter=* scope='compile'
+" args: [module] [filter] [scope] [modifier]. Defaults: filter=* scope='compile'
 command! -nargs=* JavaMavenDependencies :call _JavaMavenDependencies(<f-args>)
 
 autocmd FileType rest nnoremap <buffer> <C-h> :call VrcHandleResponse()<CR>
@@ -514,3 +533,11 @@ command! -nargs=* -range=% KubesealThis :call _KubesealSecret(expand('%'), <f-ar
 
 " search and replace with generated UUID
 " %s/pattern/\=substitute(system('uuidgen'), '\n', '', '')/gc 
+
+function _ExplorePath(...)
+    let path = get(a:, 1, getcwd())
+    let label = get(a:, 2, fnamemodify(substitute(path,"/$","",""), ':t'))
+    call CocActionAsync('runCommand', 'explorer', path)
+    let t:label = label
+endfunction
+command! -nargs=* -complete=file ExpPath :call _ExplorePath(<f-args>)
